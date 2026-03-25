@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { CONTENT_TYPE_CONFIG } from "@/lib/content-types"
 import type { TextBlock } from "@/components/tile-card"
+import { AboutPanel } from "@/components/about-panel"
 
 import { Menu, LayoutList, Sparkles } from "lucide-react"
 
@@ -34,6 +35,7 @@ export function StatusBar({
   modelLabel
 }: StatusBarProps) {
   const [time, setTime] = useState("")
+  const [isAboutOpen, setIsAboutOpen] = useState(false)
 
   const activity = useMemo(() => {
     return {
@@ -184,8 +186,20 @@ export function StatusBar({
           >
             <LayoutList className="h-4 w-4" />
           </button>
+
+          <span className="w-px h-4 bg-border/60 mx-0.5" />
+
+          <button
+            onClick={() => setIsAboutOpen(true)}
+            className="p-1.5 rounded-sm transition-all duration-200 hover:bg-secondary text-muted-foreground/40 hover:text-foreground"
+            title="About nodepad"
+          >
+            <span className="font-mono text-[11px] font-black leading-none">?</span>
+          </button>
         </div>
       </div>
+
+      <AboutPanel open={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
     </header>
   )
 }
