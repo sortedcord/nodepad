@@ -1,30 +1,15 @@
 "use client"
 
 import * as React from "react"
+import * as d3 from "d3"
 import { CONTENT_TYPE_CONFIG } from "@/lib/content-types"
 import type { TextBlock } from "@/components/tile-card"
 import { GraphDetailPanel } from "./graph-detail-panel"
 
-// ─── Layout constants ─────────────────────────────────────────────────────────
-
-// Max nodes per ring and their base radii (at reference container min-dim 720px)
-const RINGS = [
-  { max: 8,  baseR: 210 },
-  { max: 16, baseR: 380 },
-  { max: 28, baseR: 550 },
-  { max: 48, baseR: 720 },
-]
-
-const NODE_R   = 28   // regular block node
-const CENTER_R = 42   // project centre node
-const SYNTH_R  = 32   // synthesis node
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface GraphNode {
+interface SimNode extends d3.SimulationNodeDatum {
   id: string
-  x: number
-  y: number
   block?: TextBlock
   isCenter?: boolean
   isSynthesis?: boolean
@@ -32,14 +17,9 @@ interface GraphNode {
   synthesisGenerating?: boolean
 }
 
-interface GraphEdge {
-  id: string
-  sourceId: string
-  targetId: string
-  sx: number; sy: number
-  tx: number; ty: number
-  isSpoke: boolean
-  isSynth: boolean
+interface SimLink extends d3.SimulationLinkDatum<SimNode> {
+  isSpoke?: boolean
+  isSynthesisLink?: boolean
 }
 
 interface GraphAreaProps {
@@ -54,107 +34,122 @@ interface GraphAreaProps {
   onOpenSidebar: () => void
 }
 
-// ─── Layout helpers ───────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function computeNodes(
+const NODE_R   = 28
+const CENTER_R = 40
+const SYNTH_R  = 32
+
+function nodeRadius(n: SimNode): number {
+  if (n.isCenter)    return CENTER_R
+  if (n.isSynthesis) return SYNTH_R
+  return NODE_R
+}
+
+/**
+ * Ring radius grows as more nodes are added — ensures comfortable spacing.
+ * Targets ~80 px of arc between adjacent nodes.
+ */
+function spokeDistance(blockCount: number, scale = 1.0): number {
+  const fromSpacing = Math.max(blockCount, 1) * 80 / (2 * Math.PI)
+  return Math.max(200, fromSpacing) * scale
+}
+
+function buildGraph(
   blocks: TextBlock[],
   ghostNote: GraphAreaProps["ghostNote"],
   cx: number,
   cy: number,
-  minDim: number,
-): GraphNode[] {
-  const scale = Math.max(0.5, Math.min(1.35, minDim / 720))
-  const nodes: GraphNode[] = []
+  existing: SimNode[],
+): { nodes: SimNode[]; links: SimLink[] } {
+  const existMap = new Map(existing.map(n => [n.id, n]))
+  const blockIds  = new Set(blocks.map(b => b.id))
 
-  // Centre: project name
-  nodes.push({ id: "__center__", x: cx, y: cy, isCenter: true })
+  const nodes: SimNode[] = []
+  const links: SimLink[] = []
+  const edgeSet = new Set<string>()
 
-  // Distribute blocks across rings, starting from top (–π/2)
-  let placed = 0
-  for (let ri = 0; ri < RINGS.length && placed < blocks.length; ri++) {
-    const slice = blocks.slice(placed, placed + RINGS[ri].max)
-    const count  = slice.length
-    const radius = RINGS[ri].baseR * scale
-    for (let i = 0; i < count; i++) {
-      const angle = (2 * Math.PI * i / count) - Math.PI / 2
+  // ── Centre: fixed forever ──────────────────────────────────────────────
+  const center = existMap.get("__center__") ?? {
+    id: "__center__",
+    isCenter: true,
+    x: cx,
+    y: cy,
+  } as SimNode
+  center.fx = cx
+  center.fy = cy
+  nodes.push(center)
+
+  // ── Block nodes ────────────────────────────────────────────────────────
+  const n    = blocks.length
+  const dist = spokeDistance(n)
+
+  blocks.forEach((b, i) => {
+    const prev = existMap.get(b.id)
+    if (prev) {
+      prev.block = b
+      nodes.push(prev)
+    } else {
+      // Seed new nodes evenly on the ring
+      const angle = (2 * Math.PI * i / Math.max(n, 1)) - Math.PI / 2
       nodes.push({
-        id: slice[i].id,
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle),
-        block: slice[i],
+        id: b.id,
+        block: b,
+        x: cx + dist * Math.cos(angle),
+        y: cy + dist * Math.sin(angle),
       })
     }
-    placed += count
-  }
+  })
 
-  // Synthesis: just beyond the outermost occupied ring, centred at top
+  // ── Synthesis node ─────────────────────────────────────────────────────
   if (ghostNote) {
-    const lastRingIdx = Math.min(
-      Math.ceil(blocks.length / RINGS[0].max),
-      RINGS.length - 1,
-    )
-    const outerR = (RINGS[lastRingIdx].baseR + 80) * scale
-    nodes.push({
-      id: ghostNote.id,
-      x: cx,
-      y: cy - outerR,
-      isSynthesis: true,
-      synthesisText: ghostNote.text,
-      synthesisGenerating: ghostNote.isGenerating,
-    })
+    const prev = existMap.get(ghostNote.id)
+    if (prev) {
+      prev.synthesisText      = ghostNote.text
+      prev.synthesisGenerating = ghostNote.isGenerating
+      nodes.push(prev)
+    } else {
+      nodes.push({
+        id: ghostNote.id,
+        isSynthesis: true,
+        synthesisText: ghostNote.text,
+        synthesisGenerating: ghostNote.isGenerating,
+        x: cx + (Math.random() - 0.5) * 60,
+        y: cy - dist * 0.85,
+      })
+    }
   }
 
-  return nodes
-}
-
-function buildEdges(nodes: GraphNode[], blocks: TextBlock[]): GraphEdge[] {
-  const edges: GraphEdge[] = []
-  const nodeMap = new Map(nodes.map(n => [n.id, n]))
-  const blockIds = new Set(blocks.map(b => b.id))
-  const center = nodeMap.get("__center__")!
-
-  // Spokes: all non-center nodes → center
-  for (const n of nodes) {
-    if (n.isCenter) continue
-    edges.push({
-      id: `spoke-${n.id}`,
-      sourceId: "__center__",
-      targetId: n.id,
-      sx: center.x, sy: center.y,
-      tx: n.x, ty: n.y,
-      isSpoke: true,
-      isSynth: n.isSynthesis ?? false,
-    })
+  // ── Links ──────────────────────────────────────────────────────────────
+  // Spokes: centre → every node
+  for (const node of nodes) {
+    if (node.isCenter) continue
+    links.push({ source: "__center__", target: node.id, isSpoke: true })
   }
 
-  // Chords: influencedBy connections between blocks
-  const seen = new Set<string>()
+  // Chords: influencedBy
   for (const b of blocks) {
     if (!b.influencedBy?.length) continue
     for (const tid of b.influencedBy) {
       if (!blockIds.has(tid)) continue
       const key = [b.id, tid].sort().join("§")
-      if (seen.has(key)) continue
-      seen.add(key)
-      const src = nodeMap.get(b.id)
-      const tgt = nodeMap.get(tid)
-      if (!src || !tgt) continue
-      edges.push({
-        id: `chord-${key}`,
-        sourceId: b.id,
-        targetId: tid,
-        sx: src.x, sy: src.y,
-        tx: tgt.x, ty: tgt.y,
-        isSpoke: false,
-        isSynth: false,
-      })
+      if (edgeSet.has(key)) continue
+      edgeSet.add(key)
+      links.push({ source: b.id, target: tid })
     }
   }
 
-  return edges
+  // Synthesis links (dashed, soft)
+  if (ghostNote) {
+    for (const b of blocks) {
+      links.push({ source: ghostNote.id, target: b.id, isSynthesisLink: true })
+    }
+  }
+
+  return { nodes, links }
 }
 
-/** Quadratic bezier path curving slightly away from centre */
+/** Quadratic bezier curving slightly away from the canvas centre */
 function chordPath(sx: number, sy: number, tx: number, ty: number, cx: number, cy: number): string {
   const mx = (sx + tx) / 2
   const my = (sy + ty) / 2
@@ -162,7 +157,7 @@ function chordPath(sx: number, sy: number, tx: number, ty: number, cx: number, c
   const dy = my - cy
   const dist = Math.hypot(dx, dy)
   if (dist < 1) return `M ${sx} ${sy} L ${tx} ${ty}`
-  const f = Math.min(55, dist * 0.14) / dist
+  const f = Math.min(45, dist * 0.1) / dist
   return `M ${sx} ${sy} Q ${mx + dx * f} ${my + dy * f} ${tx} ${ty}`
 }
 
@@ -179,92 +174,108 @@ export function GraphArea({
 }: GraphAreaProps) {
   const containerRef = React.useRef<HTMLDivElement>(null)
   const svgRef       = React.useRef<SVGSVGElement>(null)
+  const simRef       = React.useRef<d3.Simulation<SimNode, SimLink> | null>(null)
+  const nodesRef     = React.useRef<SimNode[]>([])
+  const linksRef     = React.useRef<SimLink[]>([])
+  const dimsRef      = React.useRef({ w: 900, h: 600 })
 
-  const [dims,       setDims]       = React.useState({ w: 900, h: 600 })
+  const [, forceUpdate]   = React.useReducer(x => x + 1, 0)
+  const [dims, setDims]   = React.useState({ w: 900, h: 600 })
   const [selectedId, setSelectedId] = React.useState<string | null>(null)
   const [hoveredId,  setHoveredId]  = React.useState<string | null>(null)
   const [tooltip,    setTooltip]    = React.useState<{ id: string; x: number; y: number } | null>(null)
   const [transform,  setTransform]  = React.useState({ x: 0, y: 0, k: 1 })
 
-  // Tracks which node IDs have been introduced (for new-node fly-in animation).
-  // Initialised with ALL current block IDs so first render has no animation.
-  const [knownIds, setKnownIds] = React.useState<Set<string>>(
-    () => new Set(blocks.map(b => b.id))
-  )
-
-  // Pan refs
-  const isPanning = React.useRef(false)
-  const panStart  = React.useRef({ mx: 0, my: 0, tx: 0, ty: 0 })
+  const isPanning   = React.useRef(false)
+  const panStart    = React.useRef({ mx: 0, my: 0, tx: 0, ty: 0 })
+  const draggedNode = React.useRef<SimNode | null>(null)
 
   // ── Measure container ────────────────────────────────────────────────────
   React.useEffect(() => {
     if (!containerRef.current) return
     const obs = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect
+      dimsRef.current = { w: width, h: height }
       setDims({ w: width, h: height })
     })
     obs.observe(containerRef.current)
     return () => obs.disconnect()
   }, [])
 
-  const cx = dims.w / 2
-  const cy = dims.h / 2
+  // Keep dimsRef in sync
+  React.useEffect(() => { dimsRef.current = dims }, [dims])
 
-  // ── Layout ───────────────────────────────────────────────────────────────
-  const nodes = React.useMemo(
-    () => computeNodes(blocks, ghostNote, cx, cy, Math.min(dims.w, dims.h)),
-    [blocks, ghostNote, cx, cy, dims.w, dims.h],
-  )
-
-  const edges = React.useMemo(
-    () => buildEdges(nodes, blocks),
-    [nodes, blocks],
-  )
-
-  // ── New-node animation ────────────────────────────────────────────────────
-  // Nodes not yet in knownIds start at centre and transition out after one rAF
-  const newNodeIds = React.useMemo(() => {
-    const s = new Set<string>()
-    for (const n of nodes) {
-      if (!n.isCenter && !knownIds.has(n.id)) s.add(n.id)
-    }
-    return s
-  }, [nodes, knownIds])
-
+  // ── Init simulation once ─────────────────────────────────────────────────
   React.useEffect(() => {
-    if (newNodeIds.size === 0) return
-    const raf = requestAnimationFrame(() => {
-      setKnownIds(prev => {
-        const next = new Set(prev)
-        for (const id of newNodeIds) next.add(id)
-        return next
-      })
-    })
-    return () => cancelAnimationFrame(raf)
-  }, [newNodeIds])
+    const { w, h } = dimsRef.current
+    simRef.current = d3
+      .forceSimulation<SimNode>([])
+      .force(
+        "link",
+        d3.forceLink<SimNode, SimLink>([])
+          .id(d => d.id)
+          .distance(l => {
+            if ((l as SimLink).isSpoke)         return spokeDistance(nodesRef.current.filter(n => !n.isCenter && !n.isSynthesis).length)
+            if ((l as SimLink).isSynthesisLink) return spokeDistance(nodesRef.current.filter(n => !n.isCenter && !n.isSynthesis).length) * 0.8
+            return 130
+          })
+          .strength(l => {
+            if ((l as SimLink).isSpoke)         return 0.12
+            if ((l as SimLink).isSynthesisLink) return 0.03
+            return 0.28
+          }),
+      )
+      .force("charge", d3.forceManyBody<SimNode>().strength(n => n.isCenter ? 0 : (n.isSynthesis ? -600 : -380)))
+      .force("collide", d3.forceCollide<SimNode>().radius(n => nodeRadius(n) + 32).strength(0.85))
+      .alphaDecay(0.013)
+      .velocityDecay(0.38)
+      .on("tick", () => forceUpdate())
+      .stop()
+    return () => { simRef.current?.stop() }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Hover: connected IDs ─────────────────────────────────────────────────
-  const connectedToHovered = React.useMemo(() => {
-    if (!hoveredId) return null
-    const ids = new Set<string>([hoveredId, "__center__"])
-    if (nodes.find(n => n.id === hoveredId)?.isSynthesis) {
-      // synthesis connects to everything
-      for (const n of nodes) ids.add(n.id)
-    } else {
-      const b = blocks.find(x => x.id === hoveredId)
-      if (b?.influencedBy) for (const id of b.influencedBy) ids.add(id)
-      for (const x of blocks) {
-        if (x.influencedBy?.includes(hoveredId)) ids.add(x.id)
-      }
+  // ── Update graph when blocks/ghostNote change ────────────────────────────
+  React.useEffect(() => {
+    const sim = simRef.current
+    if (!sim) return
+    const { w, h } = dimsRef.current
+    const cx = w / 2
+    const cy = h / 2
+    const prevBlockCount = nodesRef.current.filter(n => !n.isCenter && !n.isSynthesis).length
+
+    const { nodes, links } = buildGraph(blocks, ghostNote, cx, cy, nodesRef.current)
+
+    // Ensure centre is always fixed
+    for (const n of nodes) {
+      if (n.isCenter) { n.fx = cx; n.fy = cy }
     }
-    return ids
-  }, [hoveredId, blocks, nodes])
+
+    nodesRef.current = nodes
+    linksRef.current = links
+
+    sim.nodes(nodesRef.current)
+    ;(sim.force("link") as d3.ForceLink<SimNode, SimLink>).links(linksRef.current)
+
+    const isNewNode = blocks.length > prevBlockCount
+    sim.alpha(isNewNode ? 0.4 : 0.18).restart()
+  }, [blocks, ghostNote]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Recentre when container resizes ─────────────────────────────────────
+  React.useEffect(() => {
+    const sim = simRef.current
+    if (!sim) return
+    const cx = dims.w / 2
+    const cy = dims.h / 2
+    const center = nodesRef.current.find(n => n.isCenter)
+    if (center) { center.fx = cx; center.fy = cy; center.x = cx; center.y = cy }
+    sim.alpha(0.1).restart()
+  }, [dims])
 
   // ── Zoom ─────────────────────────────────────────────────────────────────
   const handleWheel = React.useCallback((e: React.WheelEvent) => {
     e.preventDefault()
     const factor = e.deltaY < 0 ? 1.1 : 0.9
-    const rect = svgRef.current!.getBoundingClientRect()
+    const rect   = svgRef.current!.getBoundingClientRect()
     const mx = e.clientX - rect.left
     const my = e.clientY - rect.top
     setTransform(t => {
@@ -277,25 +288,71 @@ export function GraphArea({
   const handleSvgMouseDown = React.useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if ((e.target as Element).closest(".graph-node")) return
     isPanning.current = true
-    panStart.current = { mx: e.clientX, my: e.clientY, tx: transform.x, ty: transform.y }
+    panStart.current  = { mx: e.clientX, my: e.clientY, tx: transform.x, ty: transform.y }
   }, [transform])
 
   const handleSvgMouseMove = React.useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (draggedNode.current && simRef.current) {
+      const rect = svgRef.current!.getBoundingClientRect()
+      const wx   = (e.clientX - rect.left  - transform.x) / transform.k
+      const wy   = (e.clientY - rect.top   - transform.y) / transform.k
+      draggedNode.current.fx = wx
+      draggedNode.current.fy = wy
+      simRef.current.alphaTarget(0.3).restart()
+      return
+    }
     if (!isPanning.current) return
     setTransform(t => ({
       ...t,
       x: panStart.current.tx + (e.clientX - panStart.current.mx),
       y: panStart.current.ty + (e.clientY - panStart.current.my),
     }))
+  }, [transform])
+
+  const handleSvgMouseUp = React.useCallback(() => {
+    isPanning.current = false
+    if (draggedNode.current && simRef.current) {
+      if (!draggedNode.current.isCenter) {
+        draggedNode.current.fx = null
+        draggedNode.current.fy = null
+      }
+      simRef.current.alphaTarget(0)
+      draggedNode.current = null
+    }
   }, [])
 
-  const handleSvgMouseUp = React.useCallback(() => { isPanning.current = false }, [])
+  // ── Node drag ────────────────────────────────────────────────────────────
+  const handleNodeMouseDown = React.useCallback((e: React.MouseEvent, node: SimNode) => {
+    if (node.isCenter) return
+    e.stopPropagation()
+    draggedNode.current = node
+    simRef.current?.alphaTarget(0.3).restart()
+  }, [])
 
-  // ── Selected block ────────────────────────────────────────────────────────
+  // ── Connected IDs for hover dimming ─────────────────────────────────────
+  const connectedToHovered = React.useMemo(() => {
+    if (!hoveredId) return null
+    const ids = new Set<string>([hoveredId, "__center__"])
+    if (nodesRef.current.find(n => n.id === hoveredId)?.isSynthesis) {
+      for (const n of nodesRef.current) ids.add(n.id)
+    } else {
+      const b = blocks.find(x => x.id === hoveredId)
+      if (b?.influencedBy) for (const id of b.influencedBy) ids.add(id)
+      for (const x of blocks) {
+        if (x.influencedBy?.includes(hoveredId)) ids.add(x.id)
+      }
+    }
+    return ids
+  }, [hoveredId, blocks])
+
   const selectedBlock = React.useMemo(
     () => blocks.find(b => b.id === selectedId) ?? null,
     [blocks, selectedId],
   )
+
+  const { x: tx, y: ty, k: tk } = transform
+  const cx = dims.w / 2
+  const cy = dims.h / 2
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -342,34 +399,40 @@ export function GraphArea({
             </radialGradient>
           </defs>
 
-          <g transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}>
+          <g transform={`translate(${tx},${ty}) scale(${tk})`}>
 
             {/* ── Edges ──────────────────────────────────────────────────── */}
             <g>
-              {edges.map(edge => {
+              {linksRef.current.map((link, i) => {
+                const s = link.source as SimNode
+                const t = link.target as SimNode
+                if (s.x == null || t.x == null) return null
+
+                const isSpoke = (link as SimLink).isSpoke
+                const isSynth = (link as SimLink).isSynthesisLink
+
                 const dimmed = hoveredId != null &&
-                  edge.sourceId !== hoveredId &&
-                  edge.targetId !== hoveredId
+                  s.id !== hoveredId && t.id !== hoveredId
 
-                const highlighted = hoveredId != null && !dimmed && !edge.isSpoke
+                const highlighted = hoveredId != null && !dimmed && !isSpoke
 
-                const d = edge.isSpoke
-                  ? `M ${edge.sx} ${edge.sy} L ${edge.tx} ${edge.ty}`
-                  : chordPath(edge.sx, edge.sy, edge.tx, edge.ty, cx, cy)
+                const d = isSpoke
+                  ? `M ${s.x} ${s.y} L ${t.x} ${t.y}`
+                  : chordPath(s.x, s.y, t.x, t.y, cx, cy)
 
                 return (
                   <path
-                    key={edge.id}
+                    key={i}
                     d={d}
                     stroke="white"
-                    strokeWidth={edge.isSpoke ? 0.7 : 1.6}
-                    strokeDasharray={edge.isSynth ? "4 6" : undefined}
+                    strokeWidth={isSpoke ? 0.7 : isSynth ? 0.6 : 1.5}
+                    strokeDasharray={isSynth ? "4 6" : undefined}
                     strokeOpacity={
                       dimmed      ? 0.02 :
                       highlighted ? 0.75 :
-                      edge.isSpoke
-                        ? (hoveredId === edge.targetId ? 0.4 : 0.09)
-                        : 0.28
+                      isSpoke     ? (hoveredId === t.id ? 0.4 : 0.09) :
+                      isSynth     ? 0.06 :
+                      0.28
                     }
                     fill="none"
                     style={{ transition: "stroke-opacity 0.15s" }}
@@ -380,19 +443,16 @@ export function GraphArea({
 
             {/* ── Nodes ──────────────────────────────────────────────────── */}
             <g>
-              {nodes.map(node => {
+              {nodesRef.current.map(node => {
+                if (node.x == null || node.y == null) return null
+
                 const isSelected  = node.id === selectedId
                 const isHovered   = node.id === hoveredId
                 const isDimmed    = hoveredId != null && !node.isCenter && !isHovered &&
                   (!connectedToHovered || !connectedToHovered.has(node.id))
                 const isEnriching = node.block?.isEnriching
-                const isNew       = newNodeIds.has(node.id)
 
-                // New nodes start at centre; CSS transition moves them to ring position
-                const nx = isNew ? cx : node.x
-                const ny = isNew ? cy : node.y
-
-                const r = node.isCenter ? CENTER_R : node.isSynthesis ? SYNTH_R : NODE_R
+                const r      = nodeRadius(node)
                 const config = node.block ? CONTENT_TYPE_CONFIG[node.block.contentType] : null
                 const Icon   = config?.icon ?? null
                 const accent = config?.accentVar ?? "var(--type-thesis)"
@@ -406,20 +466,17 @@ export function GraphArea({
                   <g
                     key={node.id}
                     className="graph-node"
+                    transform={`translate(${node.x},${node.y})`}
                     style={{
-                      transform: `translate(${nx}px, ${ny}px)`,
-                      transition: isNew
-                        ? "none"
-                        : "transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s",
-                      opacity:    isDimmed ? 0.1 : 1,
-                      filter:     node.isSynthesis ? "url(#glow-synthesis)" : undefined,
-                      cursor:     node.isCenter ? "default" : "pointer",
+                      opacity:  isDimmed ? 0.1 : 1,
+                      filter:   node.isSynthesis ? "url(#glow-synthesis)" : undefined,
+                      cursor:   node.isCenter ? "default" : "pointer",
+                      transition: "opacity 0.2s",
                     }}
+                    onMouseDown={e => handleNodeMouseDown(e, node)}
                     onClick={e => {
                       e.stopPropagation()
-                      if (!node.isCenter) {
-                        setSelectedId(prev => prev === node.id ? null : node.id)
-                      }
+                      if (!node.isCenter) setSelectedId(prev => prev === node.id ? null : node.id)
                     }}
                     onMouseEnter={e => {
                       if (!node.isCenter) setHoveredId(node.id)
@@ -432,15 +489,9 @@ export function GraphArea({
                     }}
                     onMouseLeave={() => { setHoveredId(null); setTooltip(null) }}
                   >
-                    {/* Centre: decorative outer ring */}
+                    {/* Centre: decorative ring */}
                     {node.isCenter && (
-                      <circle
-                        r={CENTER_R + 10}
-                        fill="none"
-                        stroke="white"
-                        strokeWidth={0.5}
-                        strokeOpacity={0.07}
-                      />
+                      <circle r={CENTER_R + 10} fill="none" stroke="white" strokeWidth={0.5} strokeOpacity={0.07} />
                     )}
 
                     {/* Selected / hovered ring */}
@@ -454,9 +505,7 @@ export function GraphArea({
                       />
                     )}
 
-                    {/* Enriching: spinning dashed ring
-                        transformBox:fill-box ensures rotation around THIS element's centre,
-                        not the SVG viewport origin (which caused the giant background circle) */}
+                    {/* Enriching ring — transformBox:fill-box fixes rotation around element centre */}
                     {isEnriching && (
                       <circle
                         r={r + 13}
@@ -477,7 +526,7 @@ export function GraphArea({
                     {node.isSynthesis && (
                       <>
                         <circle r={r + 15} fill="none" stroke="var(--type-thesis)" strokeWidth={0.5} strokeOpacity={0.14} />
-                        <circle r={r + 27} fill="none" stroke="var(--type-thesis)" strokeWidth={0.5} strokeOpacity={0.06} />
+                        <circle r={r + 28} fill="none" stroke="var(--type-thesis)" strokeWidth={0.5} strokeOpacity={0.06} />
                       </>
                     )}
 
@@ -486,10 +535,10 @@ export function GraphArea({
                       r={r}
                       fill={fill}
                       fillOpacity={
-                        node.isCenter   ? 1 :
+                        node.isCenter    ? 1 :
                         node.isSynthesis ? 1 :
-                        isSelected      ? 1.0 :
-                        isHovered       ? 0.96 : 0.90
+                        isSelected       ? 1.0 :
+                        isHovered        ? 0.96 : 0.90
                       }
                       stroke={
                         node.isCenter ? "rgba(255,255,255,0.13)" :
@@ -502,7 +551,7 @@ export function GraphArea({
                     {Icon && (
                       <foreignObject x={-14} y={-14} width={28} height={28} style={{ pointerEvents: "none" }}>
                         <div
-                          // @ts-ignore – xmlns required for foreignObject
+                          // @ts-ignore
                           xmlns="http://www.w3.org/1999/xhtml"
                           style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center" }}
                         >
@@ -511,7 +560,7 @@ export function GraphArea({
                       </foreignObject>
                     )}
 
-                    {/* Centre: project name label below circle */}
+                    {/* Centre: project name below circle */}
                     {node.isCenter && (
                       <text
                         y={CENTER_R + 17}
@@ -539,18 +588,16 @@ export function GraphArea({
                         ✦
                       </text>
                     )}
-
                   </g>
                 )
               })}
             </g>
-
           </g>
         </svg>
 
         {/* ── Floating tooltip ──────────────────────────────────────────── */}
         {tooltip && (() => {
-          const node = nodes.find(n => n.id === tooltip.id)
+          const node = nodesRef.current.find(n => n.id === tooltip.id)
           if (!node || node.isCenter) return null
           const label = node.isSynthesis
             ? (node.synthesisText ?? "Synthesis")
@@ -597,7 +644,7 @@ export function GraphArea({
         {/* Hints */}
         <div className="absolute bottom-4 left-4 pointer-events-none">
           <span className="font-mono text-[8px] text-muted-foreground/25 uppercase tracking-widest">
-            scroll to zoom · drag to pan · click node to inspect
+            scroll to zoom · drag to pan · drag node to reposition
           </span>
         </div>
 
@@ -627,7 +674,6 @@ export function GraphArea({
           />
         </div>
       )}
-
     </div>
   )
 }
