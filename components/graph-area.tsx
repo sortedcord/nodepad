@@ -26,6 +26,7 @@ interface GraphAreaProps {
   ghostNote?: { id: string; text: string; category: string; isGenerating: boolean }
   projectName: string
   onReEnrich:       (id: string) => void
+  onChangeType:     (id: string, newType: import("@/lib/content-types").ContentType) => void
   onTogglePin:      (id: string) => void
   onEdit:           (id: string, text: string) => void
   onEditAnnotation: (id: string, annotation: string) => void
@@ -177,6 +178,7 @@ export function GraphArea({
   ghostNote,
   projectName,
   onReEnrich,
+  onChangeType,
   onTogglePin,
   onEdit,
   onEditAnnotation,
@@ -768,6 +770,7 @@ export function GraphArea({
             onClose={() => setSelectedId(null)}
             onSelectNode={id => setSelectedId(id)}
             onReEnrich={onReEnrich}
+            onChangeType={onChangeType}
             onTogglePin={onTogglePin}
             onEdit={onEdit}
             onEditAnnotation={onEditAnnotation}

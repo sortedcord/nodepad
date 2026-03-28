@@ -15,6 +15,7 @@ import { INITIAL_PROJECTS } from "@/lib/initial-data"
 import { useAISettings, getAIHeaders } from "@/lib/ai-settings"
 import { exportToMarkdown, downloadMarkdown, copyToClipboard } from "@/lib/export"
 import { downloadNodepadFile, parseNodepadFile, NodepadParseError } from "@/lib/nodepad-format"
+import { detectContentType } from "@/lib/detect-content-type"
 
 function generateId() {
   return Math.random().toString(36).substring(2, 10)
@@ -597,7 +598,15 @@ export default function Page() {
       }
 
       const newId = generateId()
-      const initialType = resolvedType ?? "general"
+
+      // Run heuristic client-side so the tile shows the right type immediately
+      // (instead of flashing "general" while the API is in flight).
+      // For syntactically unambiguous types, also treat as forcedType so the
+      // AI cannot override them during enrichment.
+      const heuristicType = resolvedType ?? detectContentType(resolvedText)
+      const HIGH_CONFIDENCE_TYPES = new Set<ContentType>(["question", "reference", "quote", "task"])
+      const enrichForcedType = resolvedType
+        ?? (HIGH_CONFIDENCE_TYPES.has(heuristicType) ? heuristicType : undefined)
 
       pushHistory(activeProjectId, blocks)
       updateActiveProject(p => ({
@@ -606,13 +615,13 @@ export default function Page() {
           id: newId,
           text: resolvedText,
           timestamp: Date.now(),
-          contentType: initialType,
+          contentType: heuristicType,
           isEnriching: true,
         }]
       }))
 
       setIsCommandKOpen(false)
-      enrichBlock(activeProjectId, newId, resolvedText, undefined, resolvedType).catch(console.error)
+      enrichBlock(activeProjectId, newId, resolvedText, undefined, enrichForcedType).catch(console.error)
     },
     [activeProjectId, blocks, pushHistory, updateActiveProject, enrichBlock]
   )
@@ -715,6 +724,14 @@ export default function Page() {
       } : b)
     } : p))
   }, [activeProjectId])
+
+  const handleChangeType = useCallback((id: string, newType: ContentType) => {
+    pushHistory(activeProjectId, blocks)
+    updateActiveProject(p => ({
+      ...p,
+      blocks: p.blocks.map(b => b.id === id ? { ...b, contentType: newType } : b)
+    }))
+  }, [activeProjectId, blocks, pushHistory, updateActiveProject])
 
   const clearBlocks = useCallback(() => {
     pushHistory(activeProjectId, blocks)
@@ -871,6 +888,7 @@ export default function Page() {
                   onEdit={editBlock}
                   onEditAnnotation={editAnnotation}
                   onReEnrich={reEnrichBlock}
+                  onChangeType={handleChangeType}
                   onToggleCollapse={toggleCollapse}
                   onTogglePin={handleTogglePin}
                   onToggleSubTask={handleToggleSubTask}
@@ -888,6 +906,7 @@ export default function Page() {
                   onEdit={editBlock}
                   onEditAnnotation={editAnnotation}
                   onReEnrich={reEnrichBlock}
+                  onChangeType={handleChangeType}
                   onToggleCollapse={toggleCollapse}
                   onTogglePin={handleTogglePin}
                   onToggleSubTask={handleToggleSubTask}
@@ -903,6 +922,7 @@ export default function Page() {
                   ghostNote={ghostNotes[ghostNotes.length - 1]}
                   projectName={activeProject.name}
                   onReEnrich={reEnrichBlock}
+                  onChangeType={handleChangeType}
                   onTogglePin={handleTogglePin}
                   onEdit={editBlock}
                   onEditAnnotation={editAnnotation}

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CONTENT_TYPE_CONFIG } from "@/lib/content-types"
+import { CONTENT_TYPE_CONFIG, type ContentType } from "@/lib/content-types"
 import type { TextBlock } from "@/components/tile-card"
 import { ExternalLink, Link as LinkIcon, Pin, RefreshCw, X } from "lucide-react"
 import ReactMarkdown from "react-markdown"
@@ -57,6 +57,7 @@ interface GraphDetailPanelProps {
   onClose: () => void
   onSelectNode: (id: string) => void
   onReEnrich: (id: string, newCategory?: string) => void
+  onChangeType: (id: string, newType: ContentType) => void
   onTogglePin: (id: string) => void
   onEdit: (id: string, text: string) => void
   onEditAnnotation: (id: string, annotation: string) => void
@@ -68,6 +69,7 @@ export function GraphDetailPanel({
   onClose,
   onSelectNode,
   onReEnrich,
+  onChangeType,
   onTogglePin,
   onEdit,
   onEditAnnotation,
@@ -81,6 +83,24 @@ export function GraphDetailPanel({
   const [isEditingCategory, setIsEditingCategory] = React.useState(false)
   const [categoryText, setCategoryText] = React.useState(block?.category ?? "")
   const categoryInputRef = React.useRef<HTMLInputElement>(null)
+  const [isTypePickerOpen, setIsTypePickerOpen] = React.useState(false)
+  const typePickerRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    if (!isTypePickerOpen) return
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsTypePickerOpen(false) }
+    const handleClick = (e: MouseEvent) => {
+      if (typePickerRef.current && !typePickerRef.current.contains(e.target as Node)) {
+        setIsTypePickerOpen(false)
+      }
+    }
+    window.addEventListener("keydown", handleKey)
+    document.addEventListener("mousedown", handleClick)
+    return () => {
+      window.removeEventListener("keydown", handleKey)
+      document.removeEventListener("mousedown", handleClick)
+    }
+  }, [isTypePickerOpen])
 
   // Reset edit state when block changes
   React.useEffect(() => {
@@ -177,10 +197,47 @@ export function GraphDetailPanel({
         style={{ background: headerBg, color: headerColor, borderBottom: "1px solid var(--border)" }}
       >
         <div className="flex items-center gap-2 overflow-hidden" style={{ color: "inherit" }}>
-          <Icon className="h-3 w-3 flex-shrink-0" />
-          <span className="font-mono text-[10px] font-bold uppercase tracking-wider">
-            {config.label}
-          </span>
+          {/* Type label — click to change type */}
+          <div className="relative" ref={typePickerRef}>
+            <button
+              onClick={() => setIsTypePickerOpen(v => !v)}
+              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity cursor-pointer"
+              title="Change type"
+            >
+              <Icon className="h-3 w-3 flex-shrink-0" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider">
+                {config.label}
+              </span>
+            </button>
+            {isTypePickerOpen && (
+              <div
+                className="absolute left-0 top-full mt-1 z-50 rounded-md border border-border bg-card shadow-xl"
+                style={{ minWidth: 200 }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="grid grid-cols-2 gap-px p-1.5">
+                  {(Object.entries(CONTENT_TYPE_CONFIG) as [ContentType, typeof CONTENT_TYPE_CONFIG[ContentType]][])
+                    .filter(([t]) => t !== "thesis")
+                    .map(([type, cfg]) => {
+                      const TypeIcon = cfg.icon
+                      const isActive = block.contentType === type
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => { onChangeType(block.id, type); setIsTypePickerOpen(false) }}
+                          className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-all hover:bg-secondary/60 ${isActive ? 'bg-secondary/80' : ''}`}
+                        >
+                          <TypeIcon className="h-3 w-3 flex-shrink-0" style={{ color: cfg.accentVar }} />
+                          <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: isActive ? cfg.accentVar : undefined }}>
+                            {cfg.label}
+                          </span>
+                        </button>
+                      )
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
           {isEditingCategory ? (
             <input
               ref={categoryInputRef}

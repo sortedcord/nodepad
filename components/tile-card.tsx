@@ -43,6 +43,7 @@ interface TileCardProps {
   onConnectionLock?: (blockId: string) => void
   isConnectionLocked?: boolean
   allBlocks?: TextBlock[]
+  onChangeType?: (id: string, newType: ContentType) => void
 }
 
 // Custom Markdown components for styling
@@ -98,6 +99,7 @@ export const TileCard = memo(function TileCard({
   isConnectionLocked,
   allBlocks,
   hideCollapse = false,
+  onChangeType,
 }: TileCardProps) {
   // In tiling view, collapse is disabled — BSP layout can't redistribute freed space
   const effectiveCollapsed = hideCollapse ? false : isCollapsed
@@ -111,6 +113,8 @@ export const TileCard = memo(function TileCard({
   const [isMounted, setIsMounted] = useState(false)
   const [isFooterExpanded, setIsFooterExpanded] = useState(false)
   const [editingMinHeight, setEditingMinHeight] = useState<number | undefined>(undefined)
+  const [isTypePickerOpen, setIsTypePickerOpen] = useState(false)
+  const typePickerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const categoryInputRef = useRef<HTMLInputElement>(null)
   const annotationRef = useRef<HTMLTextAreaElement>(null)
@@ -162,6 +166,23 @@ export const TileCard = memo(function TileCard({
       el.style.height = el.scrollHeight + 'px'
     }
   }, [isEditingAnnotation])
+
+  // Close type picker on outside click or Escape
+  useEffect(() => {
+    if (!isTypePickerOpen) return
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsTypePickerOpen(false) }
+    const handleClick = (e: MouseEvent) => {
+      if (typePickerRef.current && !typePickerRef.current.contains(e.target as Node)) {
+        setIsTypePickerOpen(false)
+      }
+    }
+    window.addEventListener("keydown", handleKey)
+    document.addEventListener("mousedown", handleClick)
+    return () => {
+      window.removeEventListener("keydown", handleKey)
+      document.removeEventListener("mousedown", handleClick)
+    }
+  }, [isTypePickerOpen])
 
   const handleSave = useCallback(() => {
     if (editText.trim() && editText !== block.text) {
@@ -337,10 +358,57 @@ export const TileCard = memo(function TileCard({
               )}
             </button>
           )}
-          <Icon className="h-3 w-3 flex-shrink-0" />
-          <span className="font-mono text-[10px] font-bold uppercase tracking-wider truncate max-w-[200px]">
-            {config.label}
-          </span>
+
+          {/* Type label — click to open type picker */}
+          <div className="relative" ref={typePickerRef}>
+            <button
+              onClick={e => {
+                e.stopPropagation()
+                if (onChangeType) setIsTypePickerOpen(v => !v)
+              }}
+              className={`flex items-center gap-1.5 flex-shrink-0 transition-opacity ${onChangeType ? 'hover:opacity-70 cursor-pointer' : 'cursor-default'}`}
+              title={onChangeType ? "Change type" : undefined}
+            >
+              <Icon className="h-3 w-3 flex-shrink-0" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider truncate max-w-[200px]">
+                {config.label}
+              </span>
+            </button>
+
+            {/* Type picker dropdown */}
+            {isTypePickerOpen && onChangeType && (
+              <div
+                className="absolute left-0 top-full mt-1 z-50 rounded-md border border-border bg-card shadow-xl"
+                style={{ minWidth: 200 }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="grid grid-cols-2 gap-px p-1.5">
+                  {(Object.entries(CONTENT_TYPE_CONFIG) as [ContentType, typeof CONTENT_TYPE_CONFIG[ContentType]][])
+                    .filter(([t]) => t !== "thesis")
+                    .map(([type, cfg]) => {
+                      const TypeIcon = cfg.icon
+                      const isActive = block.contentType === type
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => {
+                            onChangeType(block.id, type)
+                            setIsTypePickerOpen(false)
+                          }}
+                          className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-all hover:bg-secondary/60 ${isActive ? 'bg-secondary/80' : ''}`}
+                        >
+                          <TypeIcon className="h-3 w-3 flex-shrink-0" style={{ color: cfg.accentVar }} />
+                          <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: isActive ? cfg.accentVar : undefined }}>
+                            {cfg.label}
+                          </span>
+                        </button>
+                      )
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+
           {block.isUnrelated && !effectiveCollapsed && (
             <span className="ml-1 rounded-sm bg-black/10 px-1.5 py-0.5 font-mono text-[8px] font-black uppercase tracking-tighter text-black/60">
               Not related to topic
