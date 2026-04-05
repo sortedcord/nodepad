@@ -115,7 +115,7 @@ export function ProjectSidebar({
   const currentPreset = getPreset(draft.provider)
   const models = getModelsForProvider(draft.provider)
   const selectedModel = models.find(m => m.id === draft.modelId) || models[0] || undefined
-  const isCustomProvider = draft.provider === "custom" || models.length === 0
+  const isCustomProvider = draft.provider === "custom"
 
   return (
     <div
@@ -310,6 +310,7 @@ export function ProjectSidebar({
                                   provider: preset.id,
                                   modelId: newModels[0]?.id ?? d.modelId,
                                   webGrounding: preset.id === "openrouter" ? d.webGrounding : false,
+                                  customBaseUrl: preset.id === "zai" ? (d.customBaseUrl || preset.baseUrl) : preset.id === "custom" ? d.customBaseUrl : "",
                                 }))
                                 setProviderOpen(false)
                               }}
@@ -329,8 +330,8 @@ export function ProjectSidebar({
                   </div>
                 </div>
 
-                {/* Custom Base URL (only for "custom" provider) */}
-                {isCustomProvider && (
+                {/* Custom Base URL */}
+                {(isCustomProvider || draft.provider === "zai") && (
                   <div className="flex flex-col gap-2">
                     <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                       Base URL

@@ -127,7 +127,7 @@ export const OPENAI_MODELS: AIModel[] = [
 export function getModelsForProvider(provider: AIProvider): AIModel[] {
   switch (provider) {
     case "openrouter": return AI_MODELS
-    case "openai":     return OPENAI_MODELS
+    case "openai":     return []
     case "zai":        return []
     case "custom":     return []
   }
@@ -178,7 +178,7 @@ export function loadAIConfig(): AIConfig | null {
 }
 
 export function getBaseUrl(config: AIConfig): string {
-  if (config.provider === "custom" && config.customBaseUrl) {
+  if ((config.provider === "custom" || config.provider === "zai") && config.customBaseUrl) {
     return config.customBaseUrl.replace(/\/$/, "")
   }
   return getPreset(config.provider).baseUrl
