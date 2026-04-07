@@ -41,7 +41,7 @@ export const AI_PROVIDER_PRESETS: AIProviderPreset[] = [
     id: "zai",
     label: "Z.ai",
     baseUrl: "https://api.z.ai/api/paas/v4",
-    keyUrl: "https://z.ai",
+    keyUrl: "https://z.ai/manage-apikey/apikey-list",
     keyPlaceholder: "Your Z.ai API key",
   },
 ]
