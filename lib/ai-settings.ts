@@ -235,7 +235,8 @@ export function loadAIConfig(): AIConfig | null {
 }
 
 export function getBaseUrl(config: AIConfig): string {
-  return getPreset(config.provider).baseUrl
+  const custom = config.customBaseUrl?.trim()
+  return custom || getPreset(config.provider).baseUrl
 }
 
 export function getProviderHeaders(config: AIConfig): Record<string, string> {
