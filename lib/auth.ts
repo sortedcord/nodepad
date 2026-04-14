@@ -14,7 +14,7 @@ export interface SessionUser {
   loginAt: number
 }
 
-const USERS_STORAGE_KEY = "nodepad-users"
+export const USERS_STORAGE_KEY = "nodepad-users"
 const SESSION_STORAGE_KEY = "nodepad-session"
 
 function generateId() {
@@ -49,7 +49,7 @@ async function hashPassword(password: string) {
     throw new Error("Secure password hashing is unavailable in this environment.")
   }
   const bytes = crypto.getRandomValues(new Uint8Array(16))
-  const salt = btoa(String.fromCharCode(...bytes))
+  const salt = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(password),
@@ -122,18 +122,17 @@ function setSession(user: SessionUser) {
 export async function registerUser(username: string, password: string): Promise<{ user?: SessionUser; error?: string }> {
   const cleanUsername = username.trim()
   const normalized = normalizeUsername(cleanUsername)
-  const rawPassword = password
 
   if (!cleanUsername) return { error: "Username is required." }
   if (cleanUsername.length < 3) return { error: "Username must be at least 3 characters." }
-  if (!rawPassword) return { error: "Password is required." }
-  if (rawPassword.length < 8) return { error: "Password must be at least 8 characters." }
+  if (!password) return { error: "Password is required." }
+  if (password.length < 8) return { error: "Password must be at least 8 characters." }
 
   const users = readUsers()
   const exists = users.some(u => normalizeUsername(u.username) === normalized)
   if (exists) return { error: "An account with this username already exists." }
 
-  const { salt, hash } = await hashPassword(rawPassword)
+  const { salt, hash } = await hashPassword(password)
   const newUser: AuthUser = {
     id: generateId(),
     username: cleanUsername,

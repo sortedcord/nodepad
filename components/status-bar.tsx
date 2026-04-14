@@ -172,6 +172,7 @@ export function StatusBar({
               {onLogout && (
                 <button
                   onClick={onLogout}
+                  aria-label="Log out"
                   className="px-1.5 py-0.5 rounded-sm text-[9px] font-mono uppercase tracking-wider text-muted-foreground/70 hover:text-foreground hover:bg-secondary transition-colors"
                   title="Log out"
                 >

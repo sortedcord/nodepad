@@ -20,11 +20,20 @@ import { generateGhostClient } from "@/lib/ai-ghost"
 import { exportToMarkdown, downloadMarkdown, copyToClipboard } from "@/lib/export"
 import { downloadNodepadFile, parseNodepadFile, NodepadParseError } from "@/lib/nodepad-format"
 import { detectContentType } from "@/lib/detect-content-type"
-import { clearSession, getSessionUser, type SessionUser } from "@/lib/auth"
+import { clearSession, getSessionUser, type SessionUser, USERS_STORAGE_KEY } from "@/lib/auth"
 
 function generateId() {
-  return crypto.randomUUID()
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint8Array(16))
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
+  }
+  return `id-${Date.now().toString(36)}`
 }
+
+const SINGLE_USER_THRESHOLD = 1
 
 export interface Project {
   id: string
@@ -66,7 +75,7 @@ export default function Page() {
 
   const getRegisteredUserCount = useCallback(() => {
     try {
-      const parsed = JSON.parse(localStorage.getItem("nodepad-users") || "[]")
+      const parsed = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || "[]")
       return Array.isArray(parsed) ? parsed.length : 0
     } catch {
       return 0
@@ -157,7 +166,6 @@ export default function Page() {
     if (!sessionUser) {
       setProjects([])
       setActiveProjectId("")
-      setIsLoaded(false)
       return
     }
 
@@ -171,9 +179,6 @@ export default function Page() {
     let initialActiveId = ""
 
     const backupProjects = localStorage.getItem(getUserKey("nodepad-backup"))
-    const legacyProjects = localStorage.getItem("nodepad-projects")
-    const legacyActiveId = localStorage.getItem("nodepad-active-project")
-    const legacyBackup = localStorage.getItem("nodepad-backup")
     const userCount = getRegisteredUserCount()
 
     if (savedProjects) {
@@ -187,12 +192,16 @@ export default function Page() {
     }
 
     // One-time migration path for existing single-user installs.
-    if (initialProjects.length === 0 && userCount <= 1 && legacyProjects) {
-      try {
-        initialProjects = JSON.parse(legacyProjects)
-        initialActiveId = legacyActiveId || initialProjects[0]?.id || ""
-      } catch (e) {
-        console.error("Failed to parse legacy projects", e)
+    if (initialProjects.length === 0 && userCount <= SINGLE_USER_THRESHOLD) {
+      const legacyProjects = localStorage.getItem("nodepad-projects")
+      const legacyActiveId = localStorage.getItem("nodepad-active-project")
+      if (legacyProjects) {
+        try {
+          initialProjects = JSON.parse(legacyProjects)
+          initialActiveId = legacyActiveId || initialProjects[0]?.id || ""
+        } catch (e) {
+          console.error("Failed to parse legacy projects", e)
+        }
       }
     }
 
@@ -207,12 +216,15 @@ export default function Page() {
       }
     }
 
-    if (initialProjects.length === 0 && userCount <= 1 && legacyBackup) {
-      try {
-        initialProjects = JSON.parse(legacyBackup)
-        initialActiveId = initialProjects[0]?.id || ""
-      } catch (e) {
-        console.error("Legacy backup restore failed", e)
+    if (initialProjects.length === 0 && userCount <= SINGLE_USER_THRESHOLD) {
+      const legacyBackup = localStorage.getItem("nodepad-backup")
+      if (legacyBackup) {
+        try {
+          initialProjects = JSON.parse(legacyBackup)
+          initialActiveId = initialProjects[0]?.id || ""
+        } catch (e) {
+          console.error("Legacy backup restore failed", e)
+        }
       }
     }
 

@@ -57,12 +57,14 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         <div className="mt-4 flex rounded-sm bg-muted p-1">
           <button
             onClick={() => { setMode("login"); setError("") }}
+            aria-pressed={mode === "login"}
             className={`flex-1 rounded-sm px-2 py-1 text-xs font-medium ${mode === "login" ? "bg-background text-foreground" : "text-muted-foreground"}`}
           >
             Login
           </button>
           <button
             onClick={() => { setMode("register"); setError("") }}
+            aria-pressed={mode === "register"}
             className={`flex-1 rounded-sm px-2 py-1 text-xs font-medium ${mode === "register" ? "bg-background text-foreground" : "text-muted-foreground"}`}
           >
             Register
@@ -70,31 +72,35 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         </div>
 
         <form onSubmit={submit} className="mt-4 space-y-3">
-          <label htmlFor="auth-username" className="block text-[11px] text-muted-foreground">
-            Username
-          </label>
-          <input
-            id="auth-username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            autoComplete="username"
-            className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-          />
-          <label htmlFor="auth-password" className="block text-[11px] text-muted-foreground">
-            Password
-          </label>
-          <input
-            id="auth-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-          />
+          <div className="space-y-1">
+            <label htmlFor="auth-username" className="block text-[11px] text-muted-foreground">
+              Username
+            </label>
+            <input
+              id="auth-username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              autoComplete="username"
+              className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="auth-password" className="block text-[11px] text-muted-foreground">
+              Password
+            </label>
+            <input
+              id="auth-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+          </div>
           {mode === "register" && (
-            <>
+            <div className="space-y-1">
               <label htmlFor="auth-confirm-password" className="block text-[11px] text-muted-foreground">
                 Confirm password
               </label>
@@ -107,7 +113,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
                 autoComplete="new-password"
                 className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
               />
-            </>
+            </div>
           )}
 
           {error && (
