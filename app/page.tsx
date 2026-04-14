@@ -33,7 +33,7 @@ function generateId() {
   return `id-${Date.now().toString(36)}`
 }
 
-const SINGLE_USER_THRESHOLD = 1
+const LEGACY_MIGRATION_USER_LIMIT = 1
 
 export interface Project {
   id: string
@@ -191,8 +191,8 @@ export default function Page() {
       }
     }
 
-    // One-time migration path for existing single-user installs.
-    if (initialProjects.length === 0 && userCount <= SINGLE_USER_THRESHOLD) {
+    // Migration path for existing single-user installs.
+    if (initialProjects.length === 0 && userCount <= LEGACY_MIGRATION_USER_LIMIT) {
       const legacyProjects = localStorage.getItem("nodepad-projects")
       const legacyActiveId = localStorage.getItem("nodepad-active-project")
       if (legacyProjects) {
@@ -216,7 +216,7 @@ export default function Page() {
       }
     }
 
-    if (initialProjects.length === 0 && userCount <= SINGLE_USER_THRESHOLD) {
+    if (initialProjects.length === 0 && userCount <= LEGACY_MIGRATION_USER_LIMIT) {
       const legacyBackup = localStorage.getItem("nodepad-backup")
       if (legacyBackup) {
         try {

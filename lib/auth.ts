@@ -18,7 +18,14 @@ export const USERS_STORAGE_KEY = "nodepad-users"
 const SESSION_STORAGE_KEY = "nodepad-session"
 
 function generateId() {
-  return crypto.randomUUID()
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint8Array(16))
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
+  }
+  return `id-${Date.now().toString(36)}`
 }
 
 function normalizeUsername(username: string) {
@@ -72,7 +79,7 @@ async function hashPassword(password: string) {
   return { salt, hash }
 }
 
-async function verifyPassword(password: string, salt: string) {
+async function hashPasswordWithSalt(password: string, salt: string) {
   if (typeof window === "undefined" || !crypto?.subtle) {
     throw new Error("Secure password hashing is unavailable in this environment.")
   }
@@ -154,7 +161,7 @@ export async function loginUser(username: string, password: string): Promise<{ u
   if (!found) return { error: "No account found for this username." }
 
   if (!found.passwordSalt) return { error: "This account format is no longer supported. Please register again." }
-  const passwordHash = await verifyPassword(password, found.passwordSalt)
+  const passwordHash = await hashPasswordWithSalt(password, found.passwordSalt)
   if (passwordHash !== found.passwordHash) return { error: "Incorrect password." }
 
   const sessionUser: SessionUser = { id: found.id, username: found.username, loginAt: Date.now() }
