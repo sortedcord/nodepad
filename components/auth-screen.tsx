@@ -70,14 +70,22 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         </div>
 
         <form onSubmit={submit} className="mt-4 space-y-3">
+          <label htmlFor="auth-username" className="block text-[11px] text-muted-foreground">
+            Username
+          </label>
           <input
+            id="auth-username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
             autoComplete="username"
             className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           />
+          <label htmlFor="auth-password" className="block text-[11px] text-muted-foreground">
+            Password
+          </label>
           <input
+            id="auth-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -86,14 +94,20 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
             className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           />
           {mode === "register" && (
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm password"
-              autoComplete="new-password"
-              className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            />
+            <>
+              <label htmlFor="auth-confirm-password" className="block text-[11px] text-muted-foreground">
+                Confirm password
+              </label>
+              <input
+                id="auth-confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                autoComplete="new-password"
+                className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+            </>
           )}
 
           {error && (

@@ -23,7 +23,7 @@ import { detectContentType } from "@/lib/detect-content-type"
 import { clearSession, getSessionUser, type SessionUser } from "@/lib/auth"
 
 function generateId() {
-  return Math.random().toString(36).substring(2, 10)
+  return crypto.randomUUID()
 }
 
 export interface Project {
@@ -63,6 +63,15 @@ export default function Page() {
     if (!sessionUser) return base
     return `${base}:${sessionUser.id}`
   }, [sessionUser])
+
+  const getRegisteredUserCount = useCallback(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("nodepad-users") || "[]")
+      return Array.isArray(parsed) ? parsed.length : 0
+    } catch {
+      return 0
+    }
+  }, [])
 
   useEffect(() => {
     setSessionUser(getSessionUser())
@@ -165,14 +174,7 @@ export default function Page() {
     const legacyProjects = localStorage.getItem("nodepad-projects")
     const legacyActiveId = localStorage.getItem("nodepad-active-project")
     const legacyBackup = localStorage.getItem("nodepad-backup")
-    const userCount = (() => {
-      try {
-        const parsed = JSON.parse(localStorage.getItem("nodepad-users") || "[]")
-        return Array.isArray(parsed) ? parsed.length : 0
-      } catch {
-        return 0
-      }
-    })()
+    const userCount = getRegisteredUserCount()
 
     if (savedProjects) {
       try {
@@ -246,7 +248,7 @@ export default function Page() {
       setIsIntroOpen(true)
     }
 
-  }, [isAuthReady, sessionUser, getUserKey])
+  }, [isAuthReady, sessionUser, getUserKey, getRegisteredUserCount])
 
   // 2. Persistence: Save on Change
   useEffect(() => {
@@ -498,7 +500,7 @@ export default function Page() {
             if (existingTaskIndex !== -1) {
               const existingTask = proj.blocks[existingTaskIndex]
               const newSubTask = {
-                id: Math.random().toString(36).substring(2, 9),
+                id: generateId(),
                 text: text,
                 isDone: false,
                 timestamp: Date.now()
@@ -522,7 +524,7 @@ export default function Page() {
                   contentType: "task",
                   category: "Tasks",
                   subTasks: [{
-                    id: Math.random().toString(36).substring(2, 9),
+                    id: generateId(),
                     text: text,
                     isDone: false,
                     timestamp: Date.now()
