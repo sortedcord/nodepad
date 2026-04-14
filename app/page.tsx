@@ -7,6 +7,7 @@ import { KanbanArea } from "@/components/kanban-area"
 import { GraphArea } from "@/components/graph-area"
 import { ProjectSidebar } from "@/components/project-sidebar"
 import { StatusBar } from "@/components/status-bar"
+import { AuthScreen } from "@/components/auth-screen"
 import { GhostPanel, type GhostNote } from "@/components/ghost-panel"
 import { VimInput } from "@/components/vim-input"
 import { IntroModal } from "@/components/intro-modal"
@@ -19,10 +20,20 @@ import { generateGhostClient } from "@/lib/ai-ghost"
 import { exportToMarkdown, downloadMarkdown, copyToClipboard } from "@/lib/export"
 import { downloadNodepadFile, parseNodepadFile, NodepadParseError } from "@/lib/nodepad-format"
 import { detectContentType } from "@/lib/detect-content-type"
+import { clearSession, getSessionUser, type SessionUser, USERS_STORAGE_KEY } from "@/lib/auth"
 
 function generateId() {
-  return Math.random().toString(36).substring(2, 10)
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint8Array(16))
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
+  }
+  return `id-${Date.now().toString(36)}`
 }
+
+const LEGACY_MIGRATION_USER_LIMIT = 1
 
 export interface Project {
   id: string
@@ -39,6 +50,8 @@ export interface Project {
 import { TileIndex } from "@/components/tile-index"
 
 export default function Page() {
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null)
+  const [isAuthReady, setIsAuthReady] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveProjectId] = useState<string>("")
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null)
@@ -54,6 +67,25 @@ export default function Page() {
   const helpTooltipTimer = useRef<NodeJS.Timeout | null>(null)
   const { settings, updateSettings, resolvedModelId, currentModel, isHydrated } = useAISettings()
   const debounceTimers = useRef<Record<string, Record<string, NodeJS.Timeout>>>({})
+
+  const getUserKey = useCallback((base: string) => {
+    if (!sessionUser) return base
+    return `${base}:${sessionUser.id}`
+  }, [sessionUser])
+
+  const getRegisteredUserCount = useCallback(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || "[]")
+      return Array.isArray(parsed) ? parsed.length : 0
+    } catch {
+      return 0
+    }
+  }, [])
+
+  useEffect(() => {
+    setSessionUser(getSessionUser())
+    setIsAuthReady(true)
+  }, [])
 
   // ── Undo history ring (max 20 block snapshots per project) ───────────────
   const blockHistoryRef = useRef<Record<string, TextBlock[][]>>({})
@@ -81,12 +113,12 @@ export default function Page() {
   // ── Intro modal ──────────────────────────────────────────────────────────
   const handleIntroClose = useCallback(() => {
     setIsIntroOpen(false)
-    localStorage.setItem("nodepad-intro-seen", "true")
+    localStorage.setItem(getUserKey("nodepad-intro-seen"), "true")
     // Show the help tooltip for 6 seconds pointing to the ? button
     setShowHelpTooltip(true)
     if (helpTooltipTimer.current) clearTimeout(helpTooltipTimer.current)
     helpTooltipTimer.current = setTimeout(() => setShowHelpTooltip(false), 6000)
-  }, [])
+  }, [getUserKey])
 
   useEffect(() => () => {
     if (helpTooltipTimer.current) clearTimeout(helpTooltipTimer.current)
@@ -130,16 +162,24 @@ export default function Page() {
 
   // 1. Persistence: Initial Load & Migration
   useEffect(() => {
-    const savedProjects = localStorage.getItem("nodepad-projects")
-    const savedActiveId = localStorage.getItem("nodepad-active-project")
-    
+    if (!isAuthReady) return
+    if (!sessionUser) {
+      setProjects([])
+      setActiveProjectId("")
+      return
+    }
+
+    const savedProjects = localStorage.getItem(getUserKey("nodepad-projects"))
+    const savedActiveId = localStorage.getItem(getUserKey("nodepad-active-project"))
+
     const oldBlocks = localStorage.getItem("nodepad-blocks")
     const oldCollapsed = localStorage.getItem("nodepad-collapsed")
 
     let initialProjects: Project[] = []
     let initialActiveId = ""
 
-    const backupProjects = localStorage.getItem("nodepad-backup")
+    const backupProjects = localStorage.getItem(getUserKey("nodepad-backup"))
+    const userCount = getRegisteredUserCount()
 
     if (savedProjects) {
       try {
@@ -151,6 +191,20 @@ export default function Page() {
       }
     }
 
+    // Migration path for existing single-user installs.
+    if (initialProjects.length === 0 && userCount <= LEGACY_MIGRATION_USER_LIMIT) {
+      const legacyProjects = localStorage.getItem("nodepad-projects")
+      const legacyActiveId = localStorage.getItem("nodepad-active-project")
+      if (legacyProjects) {
+        try {
+          initialProjects = JSON.parse(legacyProjects)
+          initialActiveId = legacyActiveId || initialProjects[0]?.id || ""
+        } catch (e) {
+          console.error("Failed to parse legacy projects", e)
+        }
+      }
+    }
+
     // Fallback: restore from silent backup if primary key was absent or corrupt
     if (initialProjects.length === 0 && backupProjects) {
       try {
@@ -159,6 +213,18 @@ export default function Page() {
         console.info("Restored from nodepad-backup")
       } catch (e) {
         console.error("Backup restore also failed", e)
+      }
+    }
+
+    if (initialProjects.length === 0 && userCount <= LEGACY_MIGRATION_USER_LIMIT) {
+      const legacyBackup = localStorage.getItem("nodepad-backup")
+      if (legacyBackup) {
+        try {
+          initialProjects = JSON.parse(legacyBackup)
+          initialActiveId = initialProjects[0]?.id || ""
+        } catch (e) {
+          console.error("Legacy backup restore failed", e)
+        }
       }
     }
 
@@ -190,27 +256,39 @@ export default function Page() {
     setIsLoaded(true)
 
     // Show intro modal on first visit
-    if (!localStorage.getItem("nodepad-intro-seen")) {
+    if (!localStorage.getItem(getUserKey("nodepad-intro-seen"))) {
       setIsIntroOpen(true)
     }
 
-  }, [])
+  }, [isAuthReady, sessionUser, getUserKey, getRegisteredUserCount])
 
   // 2. Persistence: Save on Change
   useEffect(() => {
-    if (!isLoaded) return
-    localStorage.setItem("nodepad-projects", JSON.stringify(projects))
-    localStorage.setItem("nodepad-active-project", activeProjectId)
-  }, [projects, activeProjectId, isLoaded])
+    if (!isLoaded || !sessionUser) return
+    localStorage.setItem(getUserKey("nodepad-projects"), JSON.stringify(projects))
+    localStorage.setItem(getUserKey("nodepad-active-project"), activeProjectId)
+  }, [projects, activeProjectId, isLoaded, sessionUser, getUserKey])
 
   // 3. Silent rolling backup — written on every change, separate key.
   //    If nodepad-projects is ever wiped, the load effect can fall back to this.
   useEffect(() => {
-    if (!isLoaded || projects.length === 0) return
+    if (!isLoaded || !sessionUser || projects.length === 0) return
     try {
-      localStorage.setItem("nodepad-backup", JSON.stringify(projects))
+      localStorage.setItem(getUserKey("nodepad-backup"), JSON.stringify(projects))
     } catch { /* quota exceeded — skip silently */ }
-  }, [projects, isLoaded])
+  }, [projects, isLoaded, sessionUser, getUserKey])
+
+  const handleLogout = useCallback(() => {
+    clearSession()
+    setSessionUser(null)
+    setProjects([])
+    setActiveProjectId("")
+    setIsLoaded(false)
+    setIsSidebarOpen(false)
+    setIsIndexOpen(false)
+    setIsGhostPanelOpen(false)
+    setIsIntroOpen(false)
+  }, [])
 
   // Hidden file input for .nodepad import — triggered from sidebar or ⌘K
   const importInputRef = useRef<HTMLInputElement>(null)
@@ -434,7 +512,7 @@ export default function Page() {
             if (existingTaskIndex !== -1) {
               const existingTask = proj.blocks[existingTaskIndex]
               const newSubTask = {
-                id: Math.random().toString(36).substring(2, 9),
+                id: generateId(),
                 text: text,
                 isDone: false,
                 timestamp: Date.now()
@@ -458,7 +536,7 @@ export default function Page() {
                   contentType: "task",
                   category: "Tasks",
                   subTasks: [{
-                    id: Math.random().toString(36).substring(2, 9),
+                    id: generateId(),
                     text: text,
                     isDone: false,
                     timestamp: Date.now()
@@ -827,6 +905,21 @@ export default function Page() {
     setIsCommandKOpen(false)
   }, [clearBlocks, addBlock, activeProjectId])
 
+  if (!isAuthReady) {
+    return <div className="h-dvh w-full bg-background" />
+  }
+
+  if (!sessionUser) {
+    return (
+      <AuthScreen
+        onAuthenticated={(user) => {
+          setSessionUser(user)
+          setIsLoaded(false)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
       {/* Hidden file input for .nodepad import */}
@@ -868,6 +961,8 @@ export default function Page() {
           onGhostPanelToggle={() => setIsGhostPanelOpen(prev => !prev)}
           modelLabel={isHydrated && settings.apiKey ? currentModel.shortLabel : undefined}
           showHelpTooltip={showHelpTooltip}
+          sessionUsername={sessionUser.username}
+          onLogout={handleLogout}
           onHelpTooltipDismiss={() => {
             setShowHelpTooltip(false)
             if (helpTooltipTimer.current) clearTimeout(helpTooltipTimer.current)

@@ -101,10 +101,11 @@ Double-click any note to edit. Click the type label to reclassify manually.
 
 ## Data
 
-Everything lives in your browser. No account, no server, no database.
+Everything lives in your browser. No server or database.
 
-- Notes are persisted to `localStorage` under `nodepad-projects`
-- A silent rolling backup is written on every change to `nodepad-backup`
+- You can register/login locally in the browser (client-side session management)
+- Notes are persisted to `localStorage` per user under `nodepad-projects:<user-id>`
+- A silent rolling backup is written on every change to `nodepad-backup:<user-id>`
 - Export to `.md` or `.nodepad` (versioned JSON) via `⌘K`
 - Import `.nodepad` files via the sidebar
 
