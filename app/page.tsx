@@ -65,6 +65,7 @@ export default function Page() {
   const [showHelpTooltip, setShowHelpTooltip] = useState(false)
   const helpTooltipTimer = useRef<NodeJS.Timeout | null>(null)
   const { settings, updateSettings, currentModel, isHydrated } = useAISettings()
+  const aiEnabled = settings.aiEnabled
   const debounceTimers = useRef<Record<string, Record<string, NodeJS.Timeout>>>({})
 
   useEffect(() => {
@@ -124,6 +125,12 @@ export default function Page() {
     if (helpTooltipTimer.current) clearTimeout(helpTooltipTimer.current)
   }, [])
 
+  useEffect(() => {
+    if (!aiEnabled) {
+      setIsGhostPanelOpen(false)
+    }
+  }, [aiEnabled])
+
   const undo = useCallback(() => {
     const stack = blockHistoryRef.current[activeProjectId]
     if (!stack || stack.length === 0) {
@@ -155,7 +162,7 @@ export default function Page() {
 
   const activeProject = useMemo(() =>
     projects.find(p => p.id === activeProjectId) || projects[0],
-  [projects, activeProjectId])
+    [projects, activeProjectId])
 
   const blocks = activeProject?.blocks || []
   const ghostNotes = activeProject?.ghostNotes || []
@@ -441,6 +448,7 @@ export default function Page() {
   }
 
   const generateGhostNote = useCallback(async (projectId: string) => {
+    if (!aiEnabled) return
     const targetProject = projectsRef.current.find(p => p.id === projectId)
 
     if (!targetProject) return
@@ -510,9 +518,10 @@ export default function Page() {
     } finally {
       generatingRef.current.delete(projectId)
     }
-  }, [])
+  }, [aiEnabled])
 
   const enrichBlock = useCallback(async (projectId: string, id: string, text: string, category?: string, forcedType?: string) => {
+    if (!aiEnabled) return
     // Read context directly from the ref — avoids wrapping in setProjects() which
     // React StrictMode double-invokes in development, causing two concurrent
     // enrichment requests and a visible category flicker.
@@ -541,8 +550,8 @@ export default function Page() {
       // the original block IDs so we get exact, rename-proof references.
       const influencedBy = data.influencedByIndices
         ? (data.influencedByIndices as number[])
-            .map((idx) => context[idx]?.id)
-            .filter(Boolean) as string[]
+          .map((idx) => context[idx]?.id)
+          .filter(Boolean) as string[]
         : []
 
       setProjects((current: Project[]) => {
@@ -644,9 +653,10 @@ export default function Page() {
         blocks: proj.blocks.map(b => b.id === id ? { ...b, isEnriching: false, isError: true, statusText: errorStatus } : b)
       } : proj))
     }
-  }, [generateGhostNote])
+  }, [generateGhostNote, aiEnabled])
 
   const claimGhostNote = useCallback((id: string) => {
+    if (!aiEnabled) return
     const note = (activeProject?.ghostNotes || []).find(n => n.id === id)
     if (!note || note.isGenerating) return
     const newId = generateId()
@@ -668,7 +678,7 @@ export default function Page() {
       enrichBlock(p.id, newId, text, category, "thesis")
       return updatedProject
     })
-  }, [activeProject, updateActiveProject, enrichBlock])
+  }, [activeProject, updateActiveProject, enrichBlock, aiEnabled])
 
   const dismissGhostNote = useCallback((id: string) => {
     updateActiveProject(p => ({
@@ -749,14 +759,16 @@ export default function Page() {
           text: resolvedText,
           timestamp: Date.now(),
           contentType: initialDisplayType,
-          isEnriching: true,
+          isEnriching: aiEnabled,
         }]
       }))
 
       setIsCommandKOpen(false)
-      enrichBlock(activeProjectId, newId, resolvedText, undefined, enrichForcedType).catch(console.error)
+      if (aiEnabled) {
+        enrichBlock(activeProjectId, newId, resolvedText, undefined, enrichForcedType).catch(console.error)
+      }
     },
-    [activeProjectId, pushHistory, updateActiveProject, enrichBlock]
+    [activeProjectId, pushHistory, updateActiveProject, enrichBlock, aiEnabled]
   )
 
   const deleteBlock = useCallback((id: string) => {
@@ -791,21 +803,31 @@ export default function Page() {
         clearTimeout(debounceTimers.current[activeProjectId][id])
       }
 
-      debounceTimers.current[activeProjectId][id] = setTimeout(() => {
-        enrichBlock(activeProjectId, id, newText, block.category).catch(console.error)
-        delete debounceTimers.current[activeProjectId][id]
-      }, 800)
+      if (aiEnabled) {
+        debounceTimers.current[activeProjectId][id] = setTimeout(() => {
+          enrichBlock(activeProjectId, id, newText, block.category).catch(console.error)
+          delete debounceTimers.current[activeProjectId][id]
+        }, 800)
+      }
 
       return prev.map(p => p.id === activeProjectId ? {
         ...p,
-        blocks: p.blocks.map(b => b.id === id ? { ...b, text: newText, isEnriching: true, isError: false } : b)
+        blocks: p.blocks.map(b => b.id === id ? { ...b, text: newText, isEnriching: aiEnabled, isError: false } : b)
       } : p)
     })
-  }, [activeProjectId, enrichBlock, pushHistory])
+  }, [activeProjectId, enrichBlock, pushHistory, aiEnabled])
 
   const reEnrichBlock = useCallback((id: string, newCategory?: string) => {
     const block = blocksRef.current.find(b => b.id === id)
     if (!block) return
+
+    if (!aiEnabled) {
+      updateActiveProject(p => ({
+        ...p,
+        blocks: p.blocks.map(b => b.id === id ? { ...b, category: newCategory } : b)
+      }))
+      return
+    }
 
     updateActiveProject(p => ({
       ...p,
@@ -813,7 +835,7 @@ export default function Page() {
     }))
 
     enrichBlock(activeProjectId, id, block.text, newCategory || block.category, block.contentType).catch(console.error)
-  }, [activeProjectId, updateActiveProject, enrichBlock])
+  }, [activeProjectId, updateActiveProject, enrichBlock, aiEnabled])
 
   const editAnnotation = useCallback((id: string, newAnnotation: string) => {
     updateActiveProject(p => ({
@@ -862,12 +884,19 @@ export default function Page() {
     const block = blocksRef.current.find(b => b.id === id)
     if (!block) return
     pushHistory(activeProjectId, blocksRef.current)
+    if (!aiEnabled) {
+      updateActiveProject(p => ({
+        ...p,
+        blocks: p.blocks.map(b => b.id === id ? { ...b, contentType: newType } : b)
+      }))
+      return
+    }
     updateActiveProject(p => ({
       ...p,
       blocks: p.blocks.map(b => b.id === id ? { ...b, contentType: newType, isEnriching: true } : b)
     }))
     enrichBlock(activeProjectId, id, block.text, block.category, newType).catch(console.error)
-  }, [activeProjectId, pushHistory, updateActiveProject, enrichBlock])
+  }, [activeProjectId, pushHistory, updateActiveProject, enrichBlock, aiEnabled])
 
   const clearBlocks = useCallback(() => {
     pushHistory(activeProjectId, blocksRef.current)
@@ -903,7 +932,7 @@ export default function Page() {
 
   const handleCommand = useCallback((cmd: string, text?: string) => {
     setIsCommandKOpen(false)
-    
+
     // Handle view switches
     if (cmd === "kanban") {
       setViewMode("kanban")
@@ -925,12 +954,13 @@ export default function Page() {
       setIsGhostPanelOpen(false)
       setIsIndexOpen(prev => !prev)
     } else if (cmd === "open-synthesis") {
+      if (!aiEnabled) return
       setIsSidebarOpen(false)
       setIsIndexOpen(false)
       setIsGhostPanelOpen(prev => !prev)
     } else if (cmd === "clear") clearBlocks()
     else if (cmd === "help") window.open("https://github.com/albingroen/react-cmdk", "_blank")
-    
+
     // .nodepad export / import
     else if (cmd === "export-nodepad") {
       setProjects(prev => {
@@ -963,13 +993,13 @@ export default function Page() {
         return prev
       })
     }
-    
+
     // Handle type overrides
     else if (cmd === "task" && text) addBlock(text, "task")
     else if (cmd === "thesis" && text) addBlock(text, "thesis")
-    
+
     setIsCommandKOpen(false)
-  }, [clearBlocks, addBlock, activeProjectId])
+  }, [clearBlocks, addBlock, activeProjectId, aiEnabled])
 
   if (!isAuthReady) {
     return <div className="h-dvh w-full bg-background" />
@@ -1023,22 +1053,23 @@ export default function Page() {
           isSidebarOpen={isSidebarOpen}
           isIndexOpen={isIndexOpen}
           isGhostPanelOpen={isGhostPanelOpen}
-          ghostNoteCount={ghostNotes.filter(n => !n.isGenerating).length}
+          ghostNoteCount={aiEnabled ? ghostNotes.filter(n => !n.isGenerating).length : 0}
           activeProjectName={activeProject?.name || ""}
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
           onIndexToggle={() => setIsIndexOpen(!isIndexOpen)}
           onGhostPanelToggle={() => setIsGhostPanelOpen(prev => !prev)}
-          modelLabel={isHydrated && settings.apiKey ? currentModel.shortLabel : undefined}
+          modelLabel={isHydrated && aiEnabled && settings.apiKey ? currentModel.shortLabel : undefined}
           showHelpTooltip={showHelpTooltip}
           sessionUsername={sessionUser.username}
           onLogout={handleLogout}
+          aiEnabled={aiEnabled}
           onHelpTooltipDismiss={() => {
             setShowHelpTooltip(false)
             if (helpTooltipTimer.current) clearTimeout(helpTooltipTimer.current)
           }}
         />
 
-        {isHydrated && !settings.apiKey && (
+        {isHydrated && aiEnabled && !settings.apiKey && (
           <div className="flex items-center justify-center gap-3 px-4 py-2 bg-amber-950/80 border-b border-amber-800/60 text-amber-200 text-xs shrink-0">
             <span className="opacity-80">⚡ AI enrichment requires an <strong className="text-amber-200">OpenRouter API key</strong> — use a free model (no credits needed) or add credits for GPT-4o, Claude, and more. Configure in the <strong className="text-amber-200">☰ left panel</strong>.</span>
             <div className="flex items-center gap-2 shrink-0">
@@ -1068,6 +1099,7 @@ export default function Page() {
                   key={`tiling-${activeProjectId}`}
                   blocks={activeProject.blocks}
                   collapsedIds={new Set(activeProject.collapsedIds)}
+                  aiEnabled={aiEnabled}
                   onDelete={deleteBlock}
                   onEdit={editBlock}
                   onEditAnnotation={editAnnotation}
@@ -1084,6 +1116,7 @@ export default function Page() {
                 <KanbanArea
                   key={`kanban-${activeProjectId}`}
                   blocks={activeProject.blocks}
+                  aiEnabled={aiEnabled}
                   onDelete={deleteBlock}
                   onEdit={editBlock}
                   onEditAnnotation={editAnnotation}
@@ -1099,7 +1132,7 @@ export default function Page() {
                 <GraphArea
                   key={`graph-${activeProjectId}`}
                   blocks={activeProject.blocks}
-                  ghostNote={ghostNotes[ghostNotes.length - 1]}
+                  ghostNote={aiEnabled ? ghostNotes[ghostNotes.length - 1] : undefined}
                   projectName={activeProject.name}
                   onReEnrich={reEnrichBlock}
                   onChangeType={handleChangeType}
@@ -1149,9 +1182,9 @@ export default function Page() {
         />
       </div>
 
-      <TileIndex 
-        blocks={blocks} 
-        onHighlight={setHighlightedBlockId} 
+      <TileIndex
+        blocks={blocks}
+        onHighlight={setHighlightedBlockId}
         highlightedId={highlightedBlockId}
         onClose={() => setIsIndexOpen(false)}
         isOpen={isIndexOpen}

@@ -186,6 +186,7 @@ export const DEFAULT_MODEL_ID = "openai/gpt-4o"
 export const DEFAULT_PROVIDER: AIProvider = "openrouter"
 
 export interface AISettings {
+  aiEnabled: boolean
   apiKey: string
   modelId: string
   webGrounding: boolean
@@ -201,6 +202,7 @@ const STORAGE_KEY = "nodepad-ai-settings"
 function loadSettings(): AISettings {
   if (typeof window === "undefined") {
     return {
+      aiEnabled: true,
       apiKey: "",
       modelId: DEFAULT_MODEL_ID,
       webGrounding: false,
@@ -213,6 +215,7 @@ function loadSettings(): AISettings {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
       return {
+        aiEnabled: true,
         apiKey: "",
         modelId: DEFAULT_MODEL_ID,
         webGrounding: false,
@@ -222,6 +225,7 @@ function loadSettings(): AISettings {
       }
     }
     return {
+      aiEnabled: true,
       apiKey: "",
       modelId: DEFAULT_MODEL_ID,
       webGrounding: false,
@@ -232,6 +236,7 @@ function loadSettings(): AISettings {
     }
   } catch {
     return {
+      aiEnabled: true,
       apiKey: "",
       modelId: DEFAULT_MODEL_ID,
       webGrounding: false,
@@ -252,7 +257,7 @@ export interface AIConfig {
 
 export function loadAIConfig(): AIConfig | null {
   const s = loadSettings()
-  if (!s.apiKey) return null
+  if (!s.aiEnabled || !s.apiKey) return null
   const models = getModelsForProvider(s.provider)
   const model = models.find(m => m.id === s.modelId)
   const isCustomOpenRouter = s.provider === "openrouter" && s.modelId === CUSTOM_OPENROUTER_MODEL_ID
@@ -311,8 +316,13 @@ export function useAISettings() {
   // caused by settings.apiKey toggling conditional DOM blocks (API key banner,
   // modelLabel prop, etc.) between the server render and client hydration.
   const [settings, setSettings] = useState<AISettings>({
-    apiKey: "", modelId: DEFAULT_MODEL_ID, webGrounding: false,
-    provider: DEFAULT_PROVIDER, customBaseUrl: "", openrouterCustomModelId: "",
+    aiEnabled: true,
+    apiKey: "",
+    modelId: DEFAULT_MODEL_ID,
+    webGrounding: false,
+    provider: DEFAULT_PROVIDER,
+    customBaseUrl: "",
+    openrouterCustomModelId: "",
   })
   const [isHydrated, setIsHydrated] = useState(false)
 

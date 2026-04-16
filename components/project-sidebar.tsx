@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff,
   Save,
+  Sparkles,
   FolderInput,
 } from "lucide-react"
 import {
@@ -358,6 +359,29 @@ export function ProjectSidebar({
                   </div>
                 </div>
 
+                {/* AI Enabled */}
+                <div className="flex items-start justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-2.5 py-2.5">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="h-3.5 w-3.5 mt-0.5 text-primary/60 shrink-0" />
+                    <div>
+                      <div className="font-mono text-[11px] font-bold text-foreground">AI Features</div>
+                      <div className="font-mono text-[9px] text-muted-foreground mt-0.5 leading-relaxed">
+                        Toggle all AI enrichment and synthesis features.
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDraft(d => ({ ...d, aiEnabled: !d.aiEnabled }))}
+                    className={`relative shrink-0 h-5 w-9 rounded-full transition-all duration-200 ${
+                      draft.aiEnabled ? "bg-primary" : "bg-white/10"
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
+                      draft.aiEnabled ? "left-5" : "left-0.5"
+                    }`} />
+                  </button>
+                </div>
+
                 {/* API Key */}
                 <div className="flex flex-col gap-2">
                   <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
@@ -562,12 +586,16 @@ export function ProjectSidebar({
 
                 {/* API Status */}
                 <div className={`flex items-center gap-2 rounded-md px-2.5 py-2 font-mono text-[9px] ${
-                  draft.apiKey
+                  draft.aiEnabled && draft.apiKey
                     ? "bg-primary/10 border border-primary/20 text-primary"
                     : "bg-white/5 border border-white/5 text-muted-foreground"
                 }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${draft.apiKey ? "bg-primary animate-pulse" : "bg-white/30"}`} />
-                  {draft.apiKey ? `${currentPreset.label} — API key configured` : "No API key — AI disabled"}
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    draft.aiEnabled && draft.apiKey ? "bg-primary animate-pulse" : "bg-white/30"
+                  }`} />
+                  {draft.aiEnabled
+                    ? (draft.apiKey ? `${currentPreset.label} — API key configured` : "No API key — AI disabled")
+                    : "AI disabled"}
                 </div>
               </motion.div>
             )}

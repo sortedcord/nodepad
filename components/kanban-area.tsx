@@ -10,6 +10,7 @@ import { KanbanMinimap } from "./kanban-minimap"
 
 interface KanbanAreaProps {
   blocks: TextBlock[]
+  aiEnabled: boolean
   onDelete: (id: string) => void
   onEdit: (id: string, newText: string) => void
   onEditAnnotation: (id: string, newAnnotation: string) => void
@@ -24,6 +25,7 @@ interface KanbanAreaProps {
 
 export function KanbanArea({
   blocks,
+  aiEnabled,
   onDelete,
   onEdit,
   onEditAnnotation,
@@ -162,6 +164,7 @@ export function KanbanArea({
                         onConnectionLock={handleConnectionLock}
                         isConnectionLocked={lockedConnectionId === block.id}
                         allBlocks={blocks}
+                        aiEnabled={aiEnabled}
                       />
                     </div>
                   )

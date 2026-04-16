@@ -45,6 +45,7 @@ interface TileCardProps {
   isConnectionLocked?: boolean
   allBlocks?: TextBlock[]
   onChangeType?: (id: string, newType: ContentType) => void
+  aiEnabled?: boolean
 }
 
 // Custom Markdown components for styling
@@ -101,6 +102,7 @@ export const TileCard = memo(function TileCard({
   allBlocks,
   hideCollapse = false,
   onChangeType,
+  aiEnabled = true,
 }: TileCardProps) {
   // In tiling view, collapse is disabled — BSP layout can't redistribute freed space
   const effectiveCollapsed = hideCollapse ? false : isCollapsed
@@ -528,7 +530,7 @@ export const TileCard = memo(function TileCard({
                   </div>
                 ) : (
                   <div className="w-full">
-                    {block.isError && (
+                    {block.isError && aiEnabled && (
                       <div className="mb-3 flex items-start gap-2 rounded-sm border border-red-500/20 bg-red-500/10 px-2.5 py-2">
                         <span className="mt-px font-mono text-[9px] text-red-400/80 uppercase tracking-wider leading-relaxed">
                           {block.statusText === "no-api-key"

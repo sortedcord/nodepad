@@ -24,6 +24,7 @@ interface StatusBarProps {
   onHelpTooltipDismiss?: () => void
   sessionUsername?: string
   onLogout?: () => void
+  aiEnabled: boolean
 }
 
 export function StatusBar({
@@ -42,16 +43,19 @@ export function StatusBar({
   onHelpTooltipDismiss,
   sessionUsername,
   onLogout,
+  aiEnabled,
 }: StatusBarProps) {
   const [time, setTime] = useState("")
   const [isAboutOpen, setIsAboutOpen] = useState(false)
+  const [showSynthesisTooltip, setShowSynthesisTooltip] = useState(false)
+  const synthesisTooltipTimer = useRef<NodeJS.Timeout | null>(null)
 
   const activity = useMemo(() => {
     return {
-      enriching: blocks.filter(b => b.isEnriching).length,
-      errors: blocks.filter(b => b.isError).length
+      enriching: aiEnabled ? blocks.filter(b => b.isEnriching).length : 0,
+      errors: aiEnabled ? blocks.filter(b => b.isError).length : 0
     }
-  }, [blocks])
+  }, [blocks, aiEnabled])
 
   useEffect(() => {
     const update = () =>
@@ -64,6 +68,10 @@ export function StatusBar({
     update()
     const interval = setInterval(update, 1000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => () => {
+    if (synthesisTooltipTimer.current) clearTimeout(synthesisTooltipTimer.current)
   }, [])
 
   const typeCounts = useMemo(() => {
@@ -186,13 +194,24 @@ export function StatusBar({
           </span>
           {/* Ghost panel toggle with badge */}
           <button
-            onClick={onGhostPanelToggle}
+            onClick={() => {
+              if (!aiEnabled) {
+                setShowSynthesisTooltip(true)
+                if (synthesisTooltipTimer.current) clearTimeout(synthesisTooltipTimer.current)
+                synthesisTooltipTimer.current = setTimeout(() => setShowSynthesisTooltip(false), 2400)
+                return
+              }
+              onGhostPanelToggle()
+            }}
             className={`relative p-1.5 rounded-sm transition-all duration-200 ${
-              isGhostPanelOpen
-                ? "bg-primary/20 text-primary shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]"
-                : "hover:bg-secondary text-muted-foreground/50 hover:text-foreground"
+              !aiEnabled
+                ? "text-muted-foreground/40"
+                : isGhostPanelOpen
+                  ? "bg-primary/20 text-primary shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]"
+                  : "hover:bg-secondary text-muted-foreground/50 hover:text-foreground"
             }`}
             title="Synthesis Panel"
+            aria-disabled={!aiEnabled}
           >
             <Sparkles className="h-4 w-4" />
             {ghostNoteCount > 0 && !isGhostPanelOpen && (
@@ -200,6 +219,24 @@ export function StatusBar({
                 {ghostNoteCount}
               </span>
             )}
+            <AnimatePresence>
+              {showSynthesisTooltip && !aiEnabled && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute right-0 top-full mt-2 z-[300] w-52 rounded-sm bg-primary text-primary-foreground shadow-lg pointer-events-none"
+                >
+                  <div className="absolute -top-1.5 right-3 w-3 h-3 rotate-45 bg-primary rounded-[2px]" />
+                  <div className="relative px-3 py-2.5">
+                    <p className="text-[10px] font-medium leading-snug">
+                      Synthesis requires an AI provider. Enable it in the settings.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </button>
           <button
             onClick={onIndexToggle}

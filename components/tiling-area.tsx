@@ -41,6 +41,7 @@ interface BSPNode {
 interface TilingAreaProps {
   blocks: TextBlock[]
   collapsedIds: Set<string>
+  aiEnabled: boolean
   onDelete: (id: string) => void
   onEdit: (id: string, newText: string) => void
   onEditAnnotation: (id: string, newAnnotation: string) => void
@@ -57,6 +58,7 @@ interface TilingAreaProps {
 export function TilingArea({
   blocks,
   collapsedIds,
+  aiEnabled,
   onDelete,
   onEdit,
   onEditAnnotation,
@@ -205,6 +207,7 @@ export function TilingArea({
               onConnectionLock={handleConnectionLock}
               isConnectionLocked={lockedConnectionId === block.id}
               allBlocks={blocks}
+              aiEnabled={aiEnabled}
             />
           </div>
         </div>
@@ -252,6 +255,7 @@ export function TilingArea({
               onConnectionLock={handleConnectionLock}
               isConnectionLocked={lockedConnectionId === taskBlock.id}
               allBlocks={blocks}
+              aiEnabled={aiEnabled}
             />
         </div>
       )}
