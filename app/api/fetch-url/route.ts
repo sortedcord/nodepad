@@ -1,3 +1,4 @@
+import { isIP } from "node:net"
 import { NextRequest, NextResponse } from "next/server"
 
 type UrlMeta = {
@@ -90,9 +91,10 @@ function isBlockedHost(rawUrl: string): boolean {
   if (h === "localhost") return true
   if (h === "metadata.google.internal") return true
 
-  // IPv6 loopback and link-local
+  // IPv6 loopback, link-local, and ULA. Only apply these checks to real IPv6
+  // literals, not normal hostnames that merely begin with "fc" or "fd".
   if (h === "::1" || h === "0:0:0:0:0:0:0:1") return true
-  if (h.startsWith("fe80:") || h.startsWith("fc") || h.startsWith("fd")) return true
+  if (isIP(h) === 6 && (h.startsWith("fe80:") || h.startsWith("fc") || h.startsWith("fd"))) return true
 
   // IPv4 private / reserved ranges
   const ipv4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/)
