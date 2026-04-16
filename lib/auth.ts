@@ -1,170 +1,58 @@
 "use client"
 
-export interface AuthUser {
-  id: string
-  username: string
-  passwordSalt: string
-  passwordHash: string
-  createdAt: number
-}
-
 export interface SessionUser {
   id: string
   username: string
-  loginAt: number
 }
 
-export const USERS_STORAGE_KEY = "nodepad-users"
-const SESSION_STORAGE_KEY = "nodepad-session"
-
-function generateId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID()
-  }
-  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
-    const bytes = crypto.getRandomValues(new Uint8Array(16))
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
-  }
-  return `id-${Date.now().toString(36)}`
-}
-
-function normalizeUsername(username: string) {
-  return username.trim().toLowerCase()
-}
-
-function safeParseUsers(raw: string | null): AuthUser[] {
-  if (!raw) return []
+async function requestJson<T>(url: string, init?: RequestInit): Promise<{ data?: T; error?: string }> {
   try {
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
+    const response = await fetch(url, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      ...init,
+    })
+
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      return { error: payload?.error || "Request failed." }
+    }
+
+    return { data: payload as T }
+  } catch (error) {
+    console.error("Auth request failed", error)
+    return { error: "Unable to reach the server." }
   }
 }
 
-function readUsers(): AuthUser[] {
-  if (typeof window === "undefined") return []
-  return safeParseUsers(localStorage.getItem(USERS_STORAGE_KEY))
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const result = await requestJson<{ user: SessionUser | null }>("/api/auth/session", { method: "GET" })
+  if (result.error) return null
+  return result.data?.user ?? null
 }
 
-function writeUsers(users: AuthUser[]) {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users))
-}
-
-async function hashPassword(password: string) {
-  if (typeof window === "undefined" || !crypto?.subtle) {
-    throw new Error("Secure password hashing is unavailable in this environment.")
-  }
-  const bytes = crypto.getRandomValues(new Uint8Array(16))
-  const salt = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  )
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: new TextEncoder().encode(salt),
-      iterations: 150000,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    256,
-  )
-  const hashBytes = new Uint8Array(bits)
-  const hash = Array.from(hashBytes).map(b => b.toString(16).padStart(2, "0")).join("")
-  return { salt, hash }
-}
-
-async function hashPasswordWithSalt(password: string, salt: string) {
-  if (typeof window === "undefined" || !crypto?.subtle) {
-    throw new Error("Secure password hashing is unavailable in this environment.")
-  }
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  )
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: new TextEncoder().encode(salt),
-      iterations: 150000,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    256,
-  )
-  const hashBytes = new Uint8Array(bits)
-  return Array.from(hashBytes).map(b => b.toString(16).padStart(2, "0")).join("")
-}
-
-export function getSessionUser(): SessionUser | null {
-  if (typeof window === "undefined") return null
-  try {
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as SessionUser
-    if (!parsed?.id || !parsed?.username) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
-
-export function clearSession() {
-  if (typeof window === "undefined") return
-  localStorage.removeItem(SESSION_STORAGE_KEY)
-}
-
-function setSession(user: SessionUser) {
-  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user))
+export async function clearSession(): Promise<void> {
+  await requestJson("/api/auth/logout", { method: "POST" })
 }
 
 export async function registerUser(username: string, password: string): Promise<{ user?: SessionUser; error?: string }> {
-  const cleanUsername = username.trim()
-  const normalized = normalizeUsername(cleanUsername)
+  const result = await requestJson<{ user: SessionUser }>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  })
 
-  if (!cleanUsername) return { error: "Username is required." }
-  if (cleanUsername.length < 3) return { error: "Username must be at least 3 characters." }
-  if (!password) return { error: "Password is required." }
-  if (password.length < 8) return { error: "Password must be at least 8 characters." }
-
-  const users = readUsers()
-  const exists = users.some(u => normalizeUsername(u.username) === normalized)
-  if (exists) return { error: "An account with this username already exists." }
-
-  const { salt, hash } = await hashPassword(password)
-  const newUser: AuthUser = {
-    id: generateId(),
-    username: cleanUsername,
-    passwordSalt: salt,
-    passwordHash: hash,
-    createdAt: Date.now(),
-  }
-
-  writeUsers([...users, newUser])
-  const sessionUser: SessionUser = { id: newUser.id, username: newUser.username, loginAt: Date.now() }
-  setSession(sessionUser)
-  return { user: sessionUser }
+  if (result.error) return { error: result.error }
+  if (!result.data?.user) return { error: "Registration failed." }
+  return { user: result.data.user }
 }
 
 export async function loginUser(username: string, password: string): Promise<{ user?: SessionUser; error?: string }> {
-  const normalized = normalizeUsername(username)
-  const users = readUsers()
-  const found = users.find(u => normalizeUsername(u.username) === normalized)
-  if (!found) return { error: "No account found for this username." }
+  const result = await requestJson<{ user: SessionUser }>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  })
 
-  if (!found.passwordSalt) return { error: "This account format is no longer supported. Please register again." }
-  const passwordHash = await hashPasswordWithSalt(password, found.passwordSalt)
-  if (passwordHash !== found.passwordHash) return { error: "Incorrect password." }
-
-  const sessionUser: SessionUser = { id: found.id, username: found.username, loginAt: Date.now() }
-  setSession(sessionUser)
-  return { user: sessionUser }
+  if (result.error) return { error: result.error }
+  if (!result.data?.user) return { error: "Login failed." }
+  return { user: result.data.user }
 }

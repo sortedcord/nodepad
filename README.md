@@ -4,7 +4,7 @@
 
 [![Watch the intro](https://img.youtube.com/vi/nCLY7rHAjWE/maxresdefault.jpg)](https://www.youtube.com/watch?v=nCLY7rHAjWE)
 
-*[Watch the intro →](https://www.youtube.com/watch?v=nCLY7rHAjWE)*
+_[Watch the intro →](https://www.youtube.com/watch?v=nCLY7rHAjWE)_
 
 ---
 
@@ -47,53 +47,56 @@ Open [localhost:3000](http://localhost:3000).
 
 Select provider and model from the sidebar Settings panel. Each provider remembers its key independently — switching providers and back restores your key.
 
-### OpenRouter *(default)*
+### OpenRouter _(default)_
+
 Access to all major models through a single key. Create a free account at [openrouter.ai](https://openrouter.ai) — use the free-tier models below with no credits, or add credits for GPT-4o, Claude, and Gemini.
 
-| Model | Notes |
-|---|---|
-| `openai/gpt-4o` | Default. Strong annotation quality, web grounding. |
-| `anthropic/claude-sonnet-4-5` | Strong reasoning, complex research. |
-| `google/gemini-2.5-pro` | Long context, web grounding. |
-| `deepseek/deepseek-chat` | Fast, cost-effective. |
-| `mistralai/mistral-small-3.2` | Lightweight, fast. |
+| Model                         | Notes                                              |
+| ----------------------------- | -------------------------------------------------- |
+| `openai/gpt-4o`               | Default. Strong annotation quality, web grounding. |
+| `anthropic/claude-sonnet-4-5` | Strong reasoning, complex research.                |
+| `google/gemini-2.5-pro`       | Long context, web grounding.                       |
+| `deepseek/deepseek-chat`      | Fast, cost-effective.                              |
+| `mistralai/mistral-small-3.2` | Lightweight, fast.                                 |
 
 **Free tier** — no credits required, ~200 req/day limit, Nvidia-hosted, no web grounding:
 
-| Model | Notes |
-|---|---|
-| `nvidia/nemotron-3-nano-30b-a3b:free` | Nemotron 30B — fast, reliable. |
+| Model                                    | Notes                                           |
+| ---------------------------------------- | ----------------------------------------------- |
+| `nvidia/nemotron-3-nano-30b-a3b:free`    | Nemotron 30B — fast, reliable.                  |
 | `nvidia/nemotron-3-super-120b-a12b:free` | Nemotron 120B MoE — higher quality, same speed. |
 
-### OpenAI *(direct)*
+### OpenAI _(direct)_
+
 Use your OpenAI API key directly. Web grounding via search-preview models.
 
-| Model | Notes |
-|---|---|
-| `gpt-4o` | Strong structured output, web grounding. |
-| `gpt-4o-mini` | Fast, capable, web grounding. |
-| `gpt-4.1` | Latest GPT-4, improved instruction following. |
-| `o4-mini` | Fast reasoning model. |
+| Model         | Notes                                         |
+| ------------- | --------------------------------------------- |
+| `gpt-4o`      | Strong structured output, web grounding.      |
+| `gpt-4o-mini` | Fast, capable, web grounding.                 |
+| `gpt-4.1`     | Latest GPT-4, improved instruction following. |
+| `o4-mini`     | Fast reasoning model.                         |
 
 ### Z.ai
+
 GLM models from Zhipu AI. Get a key at [z.ai](https://z.ai/manage-apikey/apikey-list).
 
-| Model | Notes |
-|---|---|
-| `glm-4.7` | Strong reasoning, 200K context. |
-| `glm-5` | Z.ai flagship model. |
-| `glm-5-turbo` | Fast, community-tested. |
+| Model         | Notes                           |
+| ------------- | ------------------------------- |
+| `glm-4.7`     | Strong reasoning, 200K context. |
+| `glm-5`       | Z.ai flagship model.            |
+| `glm-5-turbo` | Fast, community-tested.         |
 
 ---
 
 ## Keyboard shortcuts
 
-| | |
-|---|---|
-| `Enter` | Add note |
-| `⌘K` | Command palette (views, navigation, export) |
-| `⌘Z` | Undo |
-| `Escape` | Deselect / close panels |
+|          |                                             |
+| -------- | ------------------------------------------- |
+| `Enter`  | Add note                                    |
+| `⌘K`     | Command palette (views, navigation, export) |
+| `⌘Z`     | Undo                                        |
+| `Escape` | Deselect / close panels                     |
 
 Double-click any note to edit. Click the type label to reclassify manually.
 
@@ -101,13 +104,68 @@ Double-click any note to edit. Click the type label to reclassify manually.
 
 ## Data
 
-Everything lives in your browser. No server or database.
+Projects, notes, and sessions are stored on the server (PostgreSQL). Sessions use secure, httpOnly cookies, and your data syncs across logins.
 
-- You can register/login locally in the browser (client-side session management)
-- Notes are persisted to `localStorage` per user under `nodepad-projects:<user-id>`
-- A silent rolling backup is written on every change to `nodepad-backup:<user-id>`
+- Register/login with server-side sessions
+- Projects and notes are persisted in PostgreSQL per account
 - Export to `.md` or `.nodepad` (versioned JSON) via `⌘K`
 - Import `.nodepad` files via the sidebar
+
+### Environment
+
+- `DATABASE_URL` must point to your PostgreSQL instance.
+- Run `npx prisma migrate dev` and `npx prisma generate` after configuring the database.
+
+### PostgreSQL setup (local)
+
+1. Create the database and user:
+
+   ```bash
+   createdb nodepad
+   psql -c "CREATE USER nodepad_user WITH PASSWORD 'nodepad_pass';"
+   psql -c "GRANT ALL PRIVILEGES ON DATABASE nodepad TO nodepad_user;"
+   ```
+
+2. Add a `.env.local` file:
+
+   ```env
+   DATABASE_URL="postgresql://nodepad_user:nodepad_pass@localhost:5432/nodepad?schema=public"
+   ```
+
+3. Run migrations and generate the Prisma client:
+
+   ```bash
+   npx prisma migrate dev --name init
+   npx prisma generate
+   ```
+
+4. Start the app:
+
+   ```bash
+   npm run dev
+   ```
+
+#### Troubleshooting db issues
+
+```
+CREATE DATABASE nodepad;
+
+CREATE USER nodepad_user WITH PASSWORD 'nodepad_pass';
+
+ALTER DATABASE nodepad OWNER TO nodepad_user;
+
+ALTER USER nodepad_user CREATEDB;
+```
+
+```
+\c nodepad
+
+ALTER SCHEMA public OWNER TO nodepad_user;
+
+GRANT ALL ON SCHEMA public TO nodepad_user;
+
+GRANT USAGE, CREATE ON SCHEMA public TO nodepad_user;
+```
 
 ---
 
