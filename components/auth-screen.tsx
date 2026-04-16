@@ -5,9 +5,10 @@ import { loginUser, registerUser, type SessionUser } from "@/lib/auth"
 
 interface AuthScreenProps {
   onAuthenticated: (user: SessionUser) => void
+  onSkip: () => void
 }
 
-export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
+export function AuthScreen({ onAuthenticated, onSkip }: AuthScreenProps) {
   const [mode, setMode] = useState<"login" | "register">("login")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -126,6 +127,13 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
             className="w-full rounded-sm bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
           >
             {isSubmitting ? "Please wait..." : mode === "login" ? "Login" : "Register"}
+          </button>
+          <button
+            type="button"
+            onClick={onSkip}
+            className="w-full rounded-sm border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+          >
+            Skip login for now
           </button>
         </form>
       </div>

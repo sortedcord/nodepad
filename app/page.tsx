@@ -25,6 +25,16 @@ import { detectContentType } from "@/lib/detect-content-type"
 import { clearSession, getSessionUser, type SessionUser } from "@/lib/auth"
 import { fetchUserState, saveUserState } from "@/lib/user-state"
 
+const SKIP_LOGIN_KEY = "nodepad-skip-login"
+const GUEST_PROJECTS_KEY = "nodepad-guest-projects"
+const GUEST_ACTIVE_PROJECT_KEY = "nodepad-guest-active-project"
+const GUEST_BACKUP_KEY = "nodepad-guest-backup"
+const GUEST_INTRO_SEEN_KEY = "nodepad-guest-intro-seen"
+const LEGACY_PROJECTS_KEY = "nodepad-projects"
+const LEGACY_ACTIVE_PROJECT_KEY = "nodepad-active-project"
+const LEGACY_BACKUP_KEY = "nodepad-backup"
+const GUEST_USER: SessionUser = { id: "guest", username: "Guest" }
+
 function generateId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID()
@@ -39,6 +49,7 @@ function generateId() {
 export default function Page() {
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null)
   const [isAuthReady, setIsAuthReady] = useState(false)
+  const [isGuest, setIsGuest] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveProjectId] = useState<string>("")
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null)
@@ -59,8 +70,16 @@ export default function Page() {
   useEffect(() => {
     let active = true
     const loadSession = async () => {
+      if (typeof window !== "undefined" && localStorage.getItem(SKIP_LOGIN_KEY) === "true") {
+        if (!active) return
+        setIsGuest(true)
+        setSessionUser(GUEST_USER)
+        setIsAuthReady(true)
+        return
+      }
       const user = await getSessionUser()
       if (!active) return
+      setIsGuest(false)
       setSessionUser(user)
       setIsAuthReady(true)
     }
@@ -119,6 +138,21 @@ export default function Page() {
     showUndoToast("↩ Undone")
   }, [activeProjectId, showUndoToast])
 
+  const enableGuestMode = useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SKIP_LOGIN_KEY, "true")
+    }
+    setIsGuest(true)
+    setSessionUser(GUEST_USER)
+    setIsLoaded(false)
+  }, [])
+
+  const clearGuestPreference = useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(SKIP_LOGIN_KEY)
+    }
+  }, [])
+
   const activeProject = useMemo(() =>
     projects.find(p => p.id === activeProjectId) || projects[0],
   [projects, activeProjectId])
@@ -142,6 +176,69 @@ export default function Page() {
   }, [activeProjectId])
 
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const loadGuestState = useCallback(() => {
+    let initialProjects: Project[] = []
+    let initialActiveId = ""
+
+    const savedProjects = localStorage.getItem(GUEST_PROJECTS_KEY)
+    const savedActiveId = localStorage.getItem(GUEST_ACTIVE_PROJECT_KEY)
+    const backupProjects = localStorage.getItem(GUEST_BACKUP_KEY)
+
+    if (savedProjects) {
+      try {
+        initialProjects = JSON.parse(savedProjects)
+        initialActiveId = savedActiveId || initialProjects[0]?.id || ""
+      } catch (e) {
+        console.error("Failed to parse guest projects — trying backup", e)
+      }
+    }
+
+    if (initialProjects.length === 0 && backupProjects) {
+      try {
+        initialProjects = JSON.parse(backupProjects)
+        initialActiveId = initialProjects[0]?.id || ""
+      } catch (e) {
+        console.error("Guest backup restore failed", e)
+      }
+    }
+
+    if (initialProjects.length === 0) {
+      const legacyProjects = localStorage.getItem(LEGACY_PROJECTS_KEY)
+      const legacyActiveId = localStorage.getItem(LEGACY_ACTIVE_PROJECT_KEY)
+      const legacyBackup = localStorage.getItem(LEGACY_BACKUP_KEY)
+
+      if (legacyProjects) {
+        try {
+          initialProjects = JSON.parse(legacyProjects)
+          initialActiveId = legacyActiveId || initialProjects[0]?.id || ""
+        } catch (e) {
+          console.error("Failed to parse legacy projects", e)
+        }
+      }
+
+      if (initialProjects.length === 0 && legacyBackup) {
+        try {
+          initialProjects = JSON.parse(legacyBackup)
+          initialActiveId = initialProjects[0]?.id || ""
+        } catch (e) {
+          console.error("Legacy backup restore failed", e)
+        }
+      }
+    }
+
+    if (initialProjects.length === 0) {
+      initialProjects = INITIAL_PROJECTS
+      initialActiveId = INITIAL_PROJECTS[0]?.id || ""
+    }
+
+    const introFlag = localStorage.getItem(GUEST_INTRO_SEEN_KEY) === "true"
+    setProjects(initialProjects)
+    setActiveProjectId(initialActiveId)
+    setIntroSeen(introFlag)
+    setIsIntroOpen(!introFlag)
+    setIsLoaded(true)
+  }, [])
 
   const loadUserState = useCallback(async () => {
     setIsLoaded(false)
@@ -182,13 +279,17 @@ export default function Page() {
       setIntroSeen(false)
       return
     }
+    if (isGuest) {
+      loadGuestState()
+      return
+    }
     loadUserState().catch((error) => {
       console.error("Failed to load user state", error)
       setProjects(INITIAL_PROJECTS)
       setActiveProjectId(INITIAL_PROJECTS[0]?.id || "")
       setIsLoaded(true)
     })
-  }, [isAuthReady, sessionUser, loadUserState])
+  }, [isAuthReady, sessionUser, isGuest, loadUserState, loadGuestState])
 
   // 2. Persistence: Save on Change (debounced)
   useEffect(() => {
@@ -203,6 +304,21 @@ export default function Page() {
     }
 
     saveTimerRef.current = setTimeout(() => {
+      if (isGuest) {
+        try {
+          localStorage.setItem(GUEST_PROJECTS_KEY, JSON.stringify(snapshot.projects))
+          localStorage.setItem(GUEST_ACTIVE_PROJECT_KEY, snapshot.activeProjectId || "")
+          localStorage.setItem(GUEST_INTRO_SEEN_KEY, snapshot.introSeen ? "true" : "false")
+          try {
+            localStorage.setItem(GUEST_BACKUP_KEY, JSON.stringify(snapshot.backupProjects || snapshot.projects))
+          } catch {
+            // Quota exceeded — skip silent backup for guest
+          }
+        } catch (error) {
+          console.error("Failed to save guest state", error)
+        }
+        return
+      }
       saveUserState(snapshot).catch((error) => {
         console.error("Failed to save user state", error)
       })
@@ -211,9 +327,23 @@ export default function Page() {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
-  }, [projects, activeProjectId, introSeen, isLoaded, sessionUser])
+  }, [projects, activeProjectId, introSeen, isLoaded, sessionUser, isGuest])
 
   const handleLogout = useCallback(() => {
+    if (isGuest) {
+      clearGuestPreference()
+      setIsGuest(false)
+      setSessionUser(null)
+      setProjects([])
+      setActiveProjectId("")
+      setIsLoaded(false)
+      setIsSidebarOpen(false)
+      setIsIndexOpen(false)
+      setIsGhostPanelOpen(false)
+      setIsIntroOpen(false)
+      setIntroSeen(false)
+      return
+    }
     void clearSession()
     setSessionUser(null)
     setProjects([])
@@ -224,7 +354,7 @@ export default function Page() {
     setIsGhostPanelOpen(false)
     setIsIntroOpen(false)
     setIntroSeen(false)
-  }, [])
+  }, [isGuest, clearGuestPreference])
 
   // Hidden file input for .nodepad import — triggered from sidebar or ⌘K
   const importInputRef = useRef<HTMLInputElement>(null)
@@ -849,9 +979,12 @@ export default function Page() {
     return (
       <AuthScreen
         onAuthenticated={(user) => {
+          clearGuestPreference()
+          setIsGuest(false)
           setSessionUser(user)
           setIsLoaded(false)
         }}
+        onSkip={enableGuestMode}
       />
     )
   }
