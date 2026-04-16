@@ -23,6 +23,7 @@ import {
   AI_PROVIDER_PRESETS,
   getModelsForProvider,
   getPreset,
+  CUSTOM_OPENROUTER_MODEL_ID,
   type AISettings,
   type AIProvider,
 } from "@/lib/ai-settings"
@@ -131,7 +132,15 @@ export function ProjectSidebar({
 
   const currentPreset = getPreset(draft.provider)
   const models = getModelsForProvider(draft.provider)
-  const selectedModel = models.find(m => m.id === draft.modelId) || models[0] || undefined
+  const isCustomOpenRouter = draft.provider === "openrouter" && draft.modelId === CUSTOM_OPENROUTER_MODEL_ID
+  const customOpenRouterId = draft.openrouterCustomModelId?.trim() || ""
+  const selectedModel = models.find(m => m.id === draft.modelId)
+    || (isCustomOpenRouter ? undefined : (draft.provider === "openrouter" ? undefined : models[0]))
+    || undefined
+  const customOpenRouterSupportsGrounding = isCustomOpenRouter && Boolean(customOpenRouterId)
+  const supportsGrounding = isCustomOpenRouter
+    ? customOpenRouterSupportsGrounding
+    : Boolean(selectedModel?.supportsGrounding)
 
   return (
     <div
@@ -426,8 +435,14 @@ export function ProjectSidebar({
                         className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
                       >
                         <div>
-                          <div className="font-mono text-[11px] font-bold text-foreground">{selectedModel?.label ?? draft.modelId}</div>
-                          <div className="font-mono text-[9px] text-muted-foreground mt-0.5">{selectedModel?.description ?? "Custom model ID"}</div>
+                          <div className="font-mono text-[11px] font-bold text-foreground">
+                            {isCustomOpenRouter ? "Custom model" : (selectedModel?.label ?? draft.modelId)}
+                          </div>
+                          <div className="font-mono text-[9px] text-muted-foreground mt-0.5">
+                            {isCustomOpenRouter
+                              ? (customOpenRouterId || "Enter a model ID below")
+                              : (selectedModel?.description ?? "Custom model ID")}
+                          </div>
                         </div>
                         <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${modelOpen ? "rotate-180" : ""}`} />
                       </button>
@@ -461,6 +476,29 @@ export function ProjectSidebar({
                                 {model.supportsGrounding && (draft.provider === "openrouter" || draft.provider === "openai") && <Globe className="ml-auto h-3 w-3 shrink-0 text-primary/50" />}
                               </button>
                             ))}
+                            {draft.provider === "openrouter" && (
+                              <button
+                                onClick={() => {
+                                  setDraft(d => ({
+                                    ...d,
+                                    modelId: CUSTOM_OPENROUTER_MODEL_ID,
+                                    webGrounding: false,
+                                  }))
+                                  setModelOpen(false)
+                                }}
+                                className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left hover:bg-white/5 transition-colors border-t border-white/5"
+                              >
+                                <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${
+                                  isCustomOpenRouter ? "border-primary bg-primary/20" : "border-white/10"
+                                }`}>
+                                  {isCustomOpenRouter && <Check className="h-2.5 w-2.5 text-primary" />}
+                                </div>
+                                <div>
+                                  <div className="font-mono text-[10px] font-bold text-foreground">Custom model</div>
+                                  <div className="font-mono text-[9px] text-muted-foreground">Use any OpenRouter model slug</div>
+                                </div>
+                              </button>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -468,31 +506,55 @@ export function ProjectSidebar({
                   )}
                 </div>
 
+                {isCustomOpenRouter && (
+                  <div className="flex flex-col gap-2">
+                    <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                      Custom OpenRouter model ID
+                    </label>
+                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                      <input
+                        type="text"
+                        value={draft.openrouterCustomModelId ?? ""}
+                        onChange={e => setDraft(d => ({ ...d, openrouterCustomModelId: e.target.value }))}
+                        placeholder="e.g. meta-llama/llama-3.1-70b-instruct"
+                        className="flex-1 bg-transparent font-mono text-[11px] text-foreground outline-none placeholder:text-muted-foreground/40"
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </div>
+                    <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
+                      Paste any OpenRouter model slug to use models not listed above.
+                    </p>
+                  </div>
+                )}
+
                 {/* Web Grounding (OpenRouter + OpenAI) */}
-                {(draft.provider === "openrouter" || draft.provider === "openai") && selectedModel && (
+                {(draft.provider === "openrouter" || draft.provider === "openai") && (selectedModel || isCustomOpenRouter) && (
                   <div className="flex items-start justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-2.5 py-2.5">
                     <div className="flex items-start gap-2">
                       <Globe className="h-3.5 w-3.5 mt-0.5 text-primary/60 shrink-0" />
                       <div>
                         <div className="font-mono text-[11px] font-bold text-foreground">Web Grounding</div>
                         <div className="font-mono text-[9px] text-muted-foreground mt-0.5 leading-relaxed">
-                          {selectedModel.supportsGrounding
+                          {supportsGrounding
                             ? draft.provider === "openai"
-                              ? `Uses ${selectedModel.groundingModelId ?? "search-preview"} for live web access`
+                              ? `Uses ${selectedModel?.groundingModelId ?? "search-preview"} for live web access`
                               : "Adds :online for live search"
-                            : "Not available for this model"}
+                            : isCustomOpenRouter
+                              ? "Enter a custom model ID to enable grounding."
+                              : "Not available for this model"}
                         </div>
                       </div>
                     </div>
                     <button
-                      onClick={() => selectedModel.supportsGrounding && setDraft(d => ({ ...d, webGrounding: !d.webGrounding }))}
-                      disabled={!selectedModel.supportsGrounding}
+                      onClick={() => supportsGrounding && setDraft(d => ({ ...d, webGrounding: !d.webGrounding }))}
+                      disabled={!supportsGrounding}
                       className={`relative shrink-0 h-5 w-9 rounded-full transition-all duration-200 ${
-                        draft.webGrounding && selectedModel.supportsGrounding ? "bg-primary" : "bg-white/10"
+                        draft.webGrounding && supportsGrounding ? "bg-primary" : "bg-white/10"
                       } disabled:opacity-30 disabled:cursor-not-allowed`}
                     >
                       <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
-                        draft.webGrounding && selectedModel.supportsGrounding ? "left-5" : "left-0.5"
+                        draft.webGrounding && supportsGrounding ? "left-5" : "left-0.5"
                       }`} />
                     </button>
                   </div>
