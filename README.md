@@ -195,6 +195,7 @@ Pull requests welcome. Two PRs have already shaped the project:
 
 - **PR #1** by [@matwate](https://github.com/matwate) — OpenAI provider support, multi-provider architecture
 - **PR #2** by [@desireco](https://github.com/desireco) — Z.ai provider, robust JSON parsing for truncated responses
+- **PR #23** by [@aayushprsingh](https://github.com/aayushprsingh) — Custom base URL for local/self-hosted models, IPv6 SSRF guard fix
 
 ---
 
