@@ -144,7 +144,7 @@ export function ProjectSidebar({
 
   return (
     <div
-      style={{ 
+      style={{
         width: isOpen ? 240 : 0,
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden"
@@ -195,13 +195,12 @@ export function ProjectSidebar({
                 className="absolute inset-0 overflow-y-auto px-2 py-2 space-y-0.5 custom-scrollbar"
               >
                 {projects.map((project) => (
-                  <div 
+                  <div
                     key={project.id}
-                    className={`group relative rounded-sm transition-all duration-150 ${
-                      activeProjectId === project.id 
-                        ? "bg-primary/10 shadow-[inset_0_1px_0px_rgba(255,255,255,0.05)]" 
+                    className={`group relative rounded-sm transition-all duration-150 ${activeProjectId === project.id
+                        ? "bg-primary/10 shadow-[inset_0_1px_0px_rgba(255,255,255,0.05)]"
                         : "hover:bg-white/5"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center p-2 px-2.5">
                       <button
@@ -221,9 +220,8 @@ export function ProjectSidebar({
                             className="bg-transparent font-mono text-xs font-bold text-foreground focus:outline-none w-full border-b border-primary/50 py-0"
                           />
                         ) : (
-                          <span className={`font-mono text-[12px] font-bold truncate ${
-                            activeProjectId === project.id ? "text-primary" : "text-foreground/80 group-hover:text-foreground"
-                          }`}>
+                          <span className={`font-mono text-[12px] font-bold truncate ${activeProjectId === project.id ? "text-primary" : "text-foreground/80 group-hover:text-foreground"
+                            }`}>
                             {project.name}
                           </span>
                         )}
@@ -275,13 +273,13 @@ export function ProjectSidebar({
                             Delete Space?
                           </span>
                           <div className="flex items-center gap-1">
-                            <button 
+                            <button
                               onClick={() => handleDelete(project.id)}
                               className="p-1 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
                             >
                               <Check className="h-3 w-3" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => setDeletingId(null)}
                               className="p-1 bg-black/30 hover:bg-black/40 rounded-full text-white transition-colors"
                             >
@@ -344,9 +342,8 @@ export function ProjectSidebar({
                               }}
                               className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left hover:bg-white/5 transition-colors"
                             >
-                              <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${
-                                draft.provider === preset.id ? "border-primary bg-primary/20" : "border-white/10"
-                              }`}>
+                              <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${draft.provider === preset.id ? "border-primary bg-primary/20" : "border-white/10"
+                                }`}>
                                 {draft.provider === preset.id && <Check className="h-2.5 w-2.5 text-primary" />}
                               </div>
                               <span className="font-mono text-[10px] font-bold text-foreground">{preset.label}</span>
@@ -400,14 +397,14 @@ export function ProjectSidebar({
                       type="text"
                       value={draft.customBaseUrl ?? ""}
                       onChange={e => setDraft(d => ({ ...d, customBaseUrl: e.target.value }))}
-                      placeholder="Optional, for local/OpenAI-compatible endpoints"
+                      placeholder="Optional — for local/self-hosted endpoints"
                       className="flex-1 bg-transparent font-mono text-[11px] text-foreground outline-none placeholder:text-muted-foreground/40"
                       autoComplete="off"
                       spellCheck={false}
                     />
                   </div>
                   <p className="font-mono text-[9px] text-muted-foreground leading-relaxed">
-                    Useful for local or self-hosted OpenAI-compatible providers like LM Studio, Ollama, or vLLM.
+                    Override the provider URL. Useful for Ollama, LM Studio, vLLM, or other OpenAI-compatible endpoints.
                   </p>
                 </div>
 
@@ -464,9 +461,8 @@ export function ProjectSidebar({
                                 }}
                                 className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left hover:bg-white/5 transition-colors"
                               >
-                                <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${
-                                  draft.modelId === model.id ? "border-primary bg-primary/20" : "border-white/10"
-                                }`}>
+                                <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${draft.modelId === model.id ? "border-primary bg-primary/20" : "border-white/10"
+                                  }`}>
                                   {draft.modelId === model.id && <Check className="h-2.5 w-2.5 text-primary" />}
                                 </div>
                                 <div>
@@ -488,9 +484,8 @@ export function ProjectSidebar({
                                 }}
                                 className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left hover:bg-white/5 transition-colors border-t border-white/5"
                               >
-                                <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${
-                                  isCustomOpenRouter ? "border-primary bg-primary/20" : "border-white/10"
-                                }`}>
+                                <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${isCustomOpenRouter ? "border-primary bg-primary/20" : "border-white/10"
+                                  }`}>
                                   {isCustomOpenRouter && <Check className="h-2.5 w-2.5 text-primary" />}
                                 </div>
                                 <div>
@@ -549,23 +544,20 @@ export function ProjectSidebar({
                     <button
                       onClick={() => supportsGrounding && setDraft(d => ({ ...d, webGrounding: !d.webGrounding }))}
                       disabled={!supportsGrounding}
-                      className={`relative shrink-0 h-5 w-9 rounded-full transition-all duration-200 ${
-                        draft.webGrounding && supportsGrounding ? "bg-primary" : "bg-white/10"
-                      } disabled:opacity-30 disabled:cursor-not-allowed`}
+                      className={`relative shrink-0 h-5 w-9 rounded-full transition-all duration-200 ${draft.webGrounding && supportsGrounding ? "bg-primary" : "bg-white/10"
+                        } disabled:opacity-30 disabled:cursor-not-allowed`}
                     >
-                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
-                        draft.webGrounding && supportsGrounding ? "left-5" : "left-0.5"
-                      }`} />
+                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${draft.webGrounding && supportsGrounding ? "left-5" : "left-0.5"
+                        }`} />
                     </button>
                   </div>
                 )}
 
                 {/* API Status */}
-                <div className={`flex items-center gap-2 rounded-md px-2.5 py-2 font-mono text-[9px] ${
-                  draft.apiKey
+                <div className={`flex items-center gap-2 rounded-md px-2.5 py-2 font-mono text-[9px] ${draft.apiKey
                     ? "bg-primary/10 border border-primary/20 text-primary"
                     : "bg-white/5 border border-white/5 text-muted-foreground"
-                }`}>
+                  }`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${draft.apiKey ? "bg-primary animate-pulse" : "bg-white/30"}`} />
                   {draft.apiKey ? `${currentPreset.label} — API key configured` : "No API key — AI disabled"}
                 </div>
