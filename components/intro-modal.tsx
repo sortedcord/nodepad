@@ -44,7 +44,7 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-3xl bg-[#0d0d0d] border border-white/10 rounded-sm shadow-2xl overflow-hidden"
+            className="relative w-full max-w-3xl bg-(--ui-surface-modal) border border-white/10 rounded-sm shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4">

@@ -53,9 +53,9 @@ export default function NotFound() {
         {/* Logo mark */}
         <div className="mb-2 flex items-center gap-2">
           <div className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--type-quote)]" />
-            <span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--type-quote)] opacity-60" />
-            <span className="h-2.5 w-2.5 rounded-[3px] bg-[var(--type-quote)] opacity-30" />
+            <span className="h-2.5 w-2.5 rounded-[3px] bg-type-quote" />
+            <span className="h-2.5 w-2.5 rounded-[3px] bg-type-quote opacity-60" />
+            <span className="h-2.5 w-2.5 rounded-[3px] bg-type-quote opacity-30" />
           </div>
           <span className="font-mono text-xs font-semibold tracking-tight text-foreground/60">
             nodepad

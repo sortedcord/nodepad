@@ -638,10 +638,10 @@ export const TileCard = memo(function TileCard({
                 ) : (
                   <div className="w-full">
                     {block.isError && (
-                      <div className="mb-3 flex items-start gap-2 rounded-sm border border-red-500/20 bg-red-500/10 px-2.5 py-2">
-                        <span className="mt-px font-mono text-[9px] text-red-400/80 uppercase tracking-wider leading-relaxed">
+                      <div className="mb-3 flex items-start gap-2 rounded-sm border border-(--ui-danger-border) bg-(--ui-danger-bg) px-2.5 py-2">
+                        <span className="mt-px font-mono text-[9px] text-(--ui-danger-text) uppercase tracking-wider leading-relaxed">
                           {block.statusText === "no-api-key"
-                            ? <>AI enrichment failed — no API key. Open the <strong className="text-red-300">☰ sidebar → Settings</strong> to add your API key.</>
+                            ? <>AI enrichment failed — no API key. Open the <strong className="text-(--ui-danger-strong)">☰ sidebar → Settings</strong> to add your API key.</>
                             : block.statusText
                               ? <>{block.statusText}{" "}<span className="opacity-60">Double-click to retry.</span></>
                               : "Enrichment failed. Double-click to retry."}
@@ -668,9 +668,9 @@ export const TileCard = memo(function TileCard({
                                     onDeleteSubTask?.(block.id, st.id)
                                   }
                                 }}
-                                className="opacity-0 group-hover/task:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                                className="opacity-0 group-hover/task:opacity-100 p-1 hover:bg-(--ui-danger-hover-bg) rounded transition-all"
                               >
-                                <X className="h-3 w-3 text-red-400" />
+                                <X className="h-3 w-3 text-(--ui-danger-icon)" />
                               </button>
                             </div>
                           ))}

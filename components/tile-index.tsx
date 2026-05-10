@@ -17,9 +17,9 @@ interface TileIndexProps {
 export function TileIndex({ blocks, onHighlight, highlightedId, onClose, isOpen, viewMode }: TileIndexProps) {
   const getIcon = (type: string) => {
     switch (type) {
-      case "task": return <CheckSquare className="h-3 w-3 text-indigo-400" />
-      case "thesis": return <Sparkles className="h-3 w-3 text-yellow-400" />
-      case "question": return <HelpCircle className="h-3 w-3 text-blue-400" />
+      case "task": return <CheckSquare className="h-3 w-3 text-(--ui-icon-task)" />
+      case "thesis": return <Sparkles className="h-3 w-3 text-(--ui-icon-thesis)" />
+      case "question": return <HelpCircle className="h-3 w-3 text-(--ui-icon-question)" />
       default: return <FileText className="h-3 w-3 text-muted-foreground/40" />
     }
   }
