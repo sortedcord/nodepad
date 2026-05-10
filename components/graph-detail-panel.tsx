@@ -182,12 +182,12 @@ export function GraphDetailPanel({
 
       {/* ── Header bar — matches tile-card style ───────────────────────── */}
       <div
-        className="flex flex-shrink-0 items-center justify-between px-3 py-2"
+        className="flex shrink-0 items-center justify-between px-3 py-2"
         style={{ background: headerBg, color: headerColor, borderBottom: "1px solid var(--border)" }}
       >
         <div className="flex items-center gap-2 overflow-hidden" style={{ color: "inherit" }}>
           {/* Type display — read-only label; shimmer while enriching */}
-          <Icon className="h-3 w-3 flex-shrink-0" />
+          <Icon className="h-3 w-3 shrink-0" />
           <span className={`font-mono text-[10px] font-bold uppercase tracking-wider ${block.isEnriching ? "shimmer-text" : ""}`}>
             {config.label}
           </span>
@@ -196,7 +196,7 @@ export function GraphDetailPanel({
             #{block.category || "no-topic"}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0" style={{ color: "inherit" }}>
+        <div className="flex items-center gap-1.5 shrink-0" style={{ color: "inherit" }}>
           <span className="font-mono text-[9px] opacity-60">{date}</span>
           {/* Change-type button — portal dropdown, clear of panel overflow:hidden */}
           <button
@@ -329,7 +329,7 @@ export function GraphDetailPanel({
                     onClick={() => onSelectNode(b.id)}
                     className="flex w-full items-start gap-2.5 rounded-sm bg-secondary/30 px-2.5 py-2 text-left hover:bg-secondary/60 transition-colors group"
                   >
-                    <BIcon className="mt-0.5 h-3 w-3 flex-shrink-0" style={{ color: bConfig.accentVar }} />
+                    <BIcon className="mt-0.5 h-3 w-3 shrink-0" style={{ color: bConfig.accentVar }} />
                     <span className="text-xs text-muted-foreground group-hover:text-foreground line-clamp-2 leading-relaxed transition-colors">
                       {b.text}
                     </span>
@@ -370,7 +370,7 @@ export function GraphDetailPanel({
                     onClick={() => { onChangeType(block.id, type); setIsTypePickerOpen(false) }}
                     className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-all hover:bg-secondary/60 ${isActive ? "bg-secondary/80" : ""}`}
                   >
-                    <TypeIcon className="h-3 w-3 flex-shrink-0" style={{ color: cfg.accentVar }} />
+                    <TypeIcon className="h-3 w-3 shrink-0" style={{ color: cfg.accentVar }} />
                     <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: isActive ? cfg.accentVar : undefined }}>
                       {cfg.label}
                     </span>

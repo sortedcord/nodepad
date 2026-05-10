@@ -153,7 +153,7 @@ export function KanbanArea({
                   return (
                     <div
                       key={block.id}
-                      className={`shrink-0 transition-[height,opacity,filter] duration-300 ${collapsed ? 'h-[38px]' : ''} ${activeConnectionId && !relatedIds.has(block.id) ? 'opacity-15 saturate-0' : 'opacity-100'}`}
+                      className={`shrink-0 transition-[height,opacity,filter] duration-300 ${collapsed ? 'h-9.5' : ''} ${activeConnectionId && !relatedIds.has(block.id) ? 'opacity-15 saturate-0' : 'opacity-100'}`}
                     >
                       <TileCard
                         block={block}
@@ -188,7 +188,7 @@ export function KanbanArea({
       {/* Empty state — absolutely positioned so it centers identically across all views */}
       {blocks.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-8 w-[420px]">
+          <div className="flex flex-col items-center gap-8 w-105">
             <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-foreground/35">type-grouped board view</p>
 
             <div className="flex flex-col gap-5 w-full">

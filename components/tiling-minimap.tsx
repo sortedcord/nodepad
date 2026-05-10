@@ -49,7 +49,7 @@ export function TilingMinimap({ pages, activePageIdx, onPageClick }: TilingMinim
                       return (
                         <div key={block.id} className="flex items-start gap-1.5">
                           <div
-                            className="h-[5px] w-[5px] rounded-[1px] shrink-0 mt-[3px]"
+                            className="h-1.25 w-1.25 rounded-[1px] shrink-0 mt-0.75"
                             style={{ background: config.accentVar, opacity: 0.85 }}
                           />
                           <span className="font-mono text-[9px] text-white/65 leading-snug">
@@ -68,20 +68,20 @@ export function TilingMinimap({ pages, activePageIdx, onPageClick }: TilingMinim
               onClick={() => onPageClick(idx)}
               onMouseEnter={() => setHoveredIdx(idx)}
               onMouseLeave={() => setHoveredIdx(null)}
-              className={`group relative flex flex-col items-center gap-[4px] p-1.5 rounded-md transition-all duration-150 outline-none ${
+              className={`group relative flex flex-col items-center gap-1 p-1.5 rounded-md transition-all duration-150 outline-none ${
                 isActive
                   ? "bg-primary/15 border border-primary/40 shadow-[0_0_0_1px_var(--primary)]"
-                  : "border border-white/10 bg-white/[0.04] hover:bg-white/[0.09] hover:border-white/25"
+                  : "border border-white/10 bg-white/4 hover:bg-white/9 hover:border-white/25"
               }`}
             >
               {/* Dot grid — up to 3 columns, rows as needed */}
-              <div className="grid grid-cols-3 gap-[3px]">
+              <div className="grid grid-cols-3 gap-0.75">
                 {page.map(block => {
                   const config = CONTENT_TYPE_CONFIG[block.contentType]
                   return (
                     <div
                       key={block.id}
-                      className="h-[5px] w-[5px] rounded-[1px] transition-opacity duration-150"
+                      className="h-1.25 w-1.25 rounded-[1px] transition-opacity duration-150"
                       style={{
                         background: config.accentVar,
                         opacity: isActive ? 0.95 : 0.55,

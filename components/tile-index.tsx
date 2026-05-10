@@ -74,7 +74,7 @@ export function TileIndex({ blocks, onHighlight, highlightedId, onClose, isOpen,
       }}
       className="flex flex-col h-full bg-black/20 backdrop-blur-3xl border-l border-border shrink-0 overflow-hidden relative z-50 transition-all duration-200 ease-in-out"
     >
-      <div className="w-[240px] flex flex-col h-full">
+      <div className="w-60 flex flex-col h-full">
         {/* Header */}
         <div className="flex h-10 items-center justify-between border-b border-border bg-card/5 backdrop-blur-md px-3 py-1.5 shrink-0">
           {onClose && (

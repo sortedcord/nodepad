@@ -2,7 +2,7 @@
 
 export function MobileWall() {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background px-8 text-center md:hidden" style={{ paddingBottom: "15vh" }}>
+    <div className="fixed inset-0 z-9999 flex flex-col items-center justify-center bg-background px-8 text-center md:hidden" style={{ paddingBottom: "15vh" }}>
       {/* Logo */}
       <div className="mb-8 flex items-center gap-2.5">
         <div className="flex items-center gap-1">

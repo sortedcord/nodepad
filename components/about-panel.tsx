@@ -64,7 +64,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-4">
-      <div className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-sm bg-primary/10 border border-primary/20 font-mono text-[10px] font-black text-primary">
+      <div className="shrink-0 flex h-6 w-6 items-center justify-center rounded-sm bg-primary/10 border border-primary/20 font-mono text-[10px] font-black text-primary">
         {n}
       </div>
       <div className="space-y-1 pt-0.5">
@@ -100,12 +100,12 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-2xl flex flex-col gap-0 p-0 bg-card border-l border-border z-[200] overflow-hidden"
+        className="w-full sm:max-w-2xl flex flex-col gap-0 p-0 bg-card border-l border-border z-200 overflow-hidden"
       >
         <SheetTitle className="sr-only">About nodepad</SheetTitle>
 
         {/* Header */}
-        <div className="flex-shrink-0 px-8 pt-8 pb-6 border-b border-border">
+        <div className="shrink-0 px-8 pt-8 pb-6 border-b border-border">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex items-center gap-0.5">
               <span className="inline-block h-3 w-3 rounded-sm bg-primary" />
@@ -205,7 +205,7 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
                 const Icon = config.icon
                 return (
                   <div key={type} className="flex items-center gap-2.5 px-3 py-2 rounded-sm bg-secondary/50 border border-border/50">
-                    <Icon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: config.accentVar }} />
+                    <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: config.accentVar }} />
                     <div>
                       <p className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: config.accentVar }}>
                         {config.label}
@@ -224,21 +224,21 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
           <Section title="Views">
             <div className="space-y-3">
               <div className="flex gap-3 p-3 rounded-sm bg-secondary/30 border border-border/50">
-                <Layers className="h-4 w-4 flex-shrink-0 text-primary mt-0.5" />
+                <Layers className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground mb-0.5">Tiling <span className="font-mono text-[10px] text-muted-foreground/50 ml-1">{mod}1</span></p>
                   <p className="text-sm text-muted-foreground">Default. Nodes are laid out in a Binary Space Partition grid — each new node splits the available space. Navigate pages horizontally. A minimap in the bottom-right shows your spatial position.</p>
                 </div>
               </div>
               <div className="flex gap-3 p-3 rounded-sm bg-secondary/30 border border-border/50">
-                <Kanban className="h-4 w-4 flex-shrink-0 text-primary mt-0.5" />
+                <Kanban className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground mb-0.5">Kanban <span className="font-mono text-[10px] text-muted-foreground/50 ml-1">{mod}2</span></p>
                   <p className="text-sm text-muted-foreground">Nodes grouped into columns by content type. Good for reviewing your thinking by category. Tasks always appear first.</p>
                 </div>
               </div>
               <div className="flex gap-3 p-3 rounded-sm bg-secondary/30 border border-border/50">
-                <GitFork className="h-4 w-4 flex-shrink-0 text-primary mt-0.5" />
+                <GitFork className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground mb-0.5">Graph <span className="font-mono text-[10px] text-muted-foreground/50 ml-1">{mod}3</span></p>
                   <p className="text-sm text-muted-foreground">An interactive force-directed graph of all your nodes. Connections between them become the focus — highly-connected nodes drift toward the centre, isolated ones settle at the periphery. Click any node to open its full detail panel. Hover to dim unrelated nodes.</p>
@@ -258,7 +258,7 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
                 { icon: Sparkles, title: "Synthesis", desc: "After ≥3 nodes, nodepad quietly generates an emergent thesis — a 15–25 word synthesis of what you're actually thinking about. Solidify it to keep it, or dismiss." },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex gap-3">
-                  <Icon className="h-4 w-4 flex-shrink-0 text-primary/70 mt-0.5" />
+                  <Icon className="h-4 w-4 shrink-0 text-primary/70 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-foreground mb-0.5">{title}</p>
                     <p className="text-sm text-muted-foreground">{desc}</p>
@@ -272,21 +272,21 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
           <Section title="Export & your data">
             <div className="space-y-3">
               <div className="flex gap-3">
-                <FolderDown className="h-4 w-4 flex-shrink-0 text-primary/70 mt-0.5" />
+                <FolderDown className="h-4 w-4 shrink-0 text-primary/70 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground mb-0.5">Export .nodepad</p>
                   <p className="text-sm text-muted-foreground">Save your full research space as a <code className="px-1 rounded bg-secondary font-mono text-xs">.nodepad</code> file. Import it on any device to pick up where you left off.</p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <Download className="h-4 w-4 flex-shrink-0 text-primary/70 mt-0.5" />
+                <Download className="h-4 w-4 shrink-0 text-primary/70 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground mb-0.5">Export Markdown</p>
                   <p className="text-sm text-muted-foreground">Export a richly formatted Markdown document with YAML front matter, a table of contents, grouped sections, confidence tables for claims, and cited sources.</p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <FolderInput className="h-4 w-4 flex-shrink-0 text-primary/70 mt-0.5" />
+                <FolderInput className="h-4 w-4 shrink-0 text-primary/70 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground mb-0.5">Your data, synced</p>
                   <p className="text-sm text-muted-foreground">Your projects and notes are stored in your account on the server (PostgreSQL) and synced across sessions. Notes are still sent to the AI provider of your choice (OpenRouter, OpenAI, or Z.ai) using your own API key.</p>
@@ -320,7 +320,7 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
                 "Use multiple projects (sidebar) to keep separate research threads isolated.",
               ].map((tip, i) => (
                 <li key={i} className="flex gap-2.5 text-sm text-muted-foreground">
-                  <span className="flex-shrink-0 font-mono text-[10px] text-primary/50 mt-0.5 pt-px">→</span>
+                  <span className="shrink-0 font-mono text-[10px] text-primary/50 mt-0.5 pt-px">→</span>
                   {tip}
                 </li>
               ))}

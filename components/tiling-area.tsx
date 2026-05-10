@@ -304,7 +304,7 @@ export function TilingArea({
       {/* Empty state — absolutely positioned so it centers identically across all views */}
       {pageTrees.length === 0 && !taskBlock && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-8 w-[420px]">
+          <div className="flex flex-col items-center gap-8 w-105">
             <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-foreground/35">spatial research workspace</p>
 
             <div className="flex flex-col gap-5 w-full">

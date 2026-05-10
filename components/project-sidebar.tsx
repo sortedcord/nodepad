@@ -151,7 +151,7 @@ export function ProjectSidebar({
       }}
       className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 backdrop-blur-3xl flex flex-col h-full"
     >
-      <div className="w-[240px] flex flex-col h-full">
+      <div className="w-60 flex flex-col h-full">
         {/* Header */}
         <div className="flex h-10 items-center justify-between border-b border-border bg-card/5 backdrop-blur-md px-3 py-1.5 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -309,7 +309,7 @@ export function ProjectSidebar({
                   <div className="relative">
                     <button
                       onClick={() => setProviderOpen(v => !v)}
-                      className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
+                      className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/4 px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
                     >
                       <span className="font-mono text-[11px] font-bold text-foreground">{currentPreset.label}</span>
                       <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${providerOpen ? "rotate-180" : ""}`} />
@@ -360,7 +360,7 @@ export function ProjectSidebar({
                   <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                     API Key
                   </label>
-                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                     <Key className="h-3 w-3 shrink-0 text-muted-foreground" />
                     <input
                       type="text"
@@ -392,7 +392,7 @@ export function ProjectSidebar({
                   <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                     Custom Base URL
                   </label>
-                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                     <input
                       type="text"
                       value={draft.customBaseUrl ?? ""}
@@ -414,7 +414,7 @@ export function ProjectSidebar({
                     Model
                   </label>
                   {models.length === 0 ? (
-                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                       <input
                         type="text"
                         value={draft.modelId}
@@ -429,7 +429,7 @@ export function ProjectSidebar({
                     <div className="relative">
                       <button
                         onClick={() => setModelOpen(v => !v)}
-                        className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
+                        className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/4 px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
                       >
                         <div>
                           <div className="font-mono text-[11px] font-bold text-foreground">
@@ -506,7 +506,7 @@ export function ProjectSidebar({
                     <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                       Custom OpenRouter model ID
                     </label>
-                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                       <input
                         type="text"
                         value={draft.openrouterCustomModelId ?? ""}
@@ -525,7 +525,7 @@ export function ProjectSidebar({
 
                 {/* Web Grounding (OpenRouter + OpenAI) */}
                 {(draft.provider === "openrouter" || draft.provider === "openai") && (selectedModel || isCustomOpenRouter) && (
-                  <div className="flex items-start justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-2.5 py-2.5">
+                  <div className="flex items-start justify-between gap-3 rounded-md border border-white/5 bg-white/2 px-2.5 py-2.5">
                     <div className="flex items-start gap-2">
                       <Globe className="h-3.5 w-3.5 mt-0.5 text-primary/60 shrink-0" />
                       <div>
@@ -572,14 +572,14 @@ export function ProjectSidebar({
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={handleSaveSettings}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] shadow-sm"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] shadow-sm"
               >
                 <span>Save Settings</span>
                 <Save className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => setShowSettings(false)}
-                className="flex items-center justify-center w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] border border-white/5"
+                className="flex items-center justify-center w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] border border-white/5"
               >
                 Cancel
               </button>
@@ -588,14 +588,14 @@ export function ProjectSidebar({
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={onCreateProject}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] shadow-sm"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] shadow-sm"
               >
                 <span>New Space</span>
                 <Plus className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={onImportProject}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] border border-white/5"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] border border-white/5"
                 title="Import a .nodepad file"
               >
                 <span>Import .nodepad</span>
@@ -603,7 +603,7 @@ export function ProjectSidebar({
               </button>
               <button
                 onClick={() => setShowSettings(true)}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] border border-white/5"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] border border-white/5"
               >
                 <span>Settings</span>
                 <Settings className="h-3.5 w-3.5" />

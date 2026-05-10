@@ -399,7 +399,7 @@ export function GraphArea({
       >
         {blocks.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="flex flex-col items-center gap-8 w-[420px]">
+            <div className="flex flex-col items-center gap-8 w-105">
               <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-foreground/35">force-directed graph view</p>
 
               <div className="flex flex-col gap-5 w-full">
@@ -706,14 +706,14 @@ export function GraphArea({
               >
                 <div className="flex items-center gap-2 px-2.5 py-1.5" style={{ background: accent }}>
                   {config?.icon && React.createElement(config.icon, {
-                    className: "h-3 w-3 flex-shrink-0",
+                    className: "h-3 w-3 shrink-0",
                     style: { color: "black", opacity: 0.7 },
                   })}
                   <span className="font-mono text-[9px] font-black uppercase tracking-widest text-black/70">
                     {node.isSynthesis ? "Synthesis" : config?.label}
                   </span>
                   {node.block?.category && (
-                    <span className="ml-auto font-mono text-[8px] text-black/50 truncate max-w-[90px]">
+                    <span className="ml-auto font-mono text-[8px] text-black/50 truncate max-w-22.5">
                       {node.block.category}
                     </span>
                   )}

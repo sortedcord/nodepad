@@ -341,7 +341,7 @@ export const TileCard = memo(function TileCard({
 
       {/* Header */}
       <div
-        className={`relative flex items-center justify-between px-3 py-2 flex-shrink-0 ${isTextRTL ? 'flex-row-reverse' : ''}`}
+        className={`relative flex items-center justify-between px-3 py-2 shrink-0 ${isTextRTL ? 'flex-row-reverse' : ''}`}
         style={{ 
           borderBottom: effectiveCollapsed ? "none" : "1px solid var(--border)",
           background: isTask
@@ -362,7 +362,7 @@ export const TileCard = memo(function TileCard({
           {!hideCollapse && (
             <button
               onClick={toggleCollapse}
-              className="flex-shrink-0 transition-transform hover:scale-110 active:scale-95"
+              className="shrink-0 transition-transform hover:scale-110 active:scale-95"
               aria-label={effectiveCollapsed ? "Expand panel" : "Collapse panel"}
             >
               {effectiveCollapsed ? (
@@ -374,8 +374,8 @@ export const TileCard = memo(function TileCard({
           )}
 
           {/* Type display — read-only label */}
-          <Icon className="h-3 w-3 flex-shrink-0" />
-          <span className="font-mono text-[10px] font-bold uppercase tracking-wider truncate max-w-[200px]">
+          <Icon className="h-3 w-3 shrink-0" />
+          <span className="font-mono text-[10px] font-bold uppercase tracking-wider truncate max-w-50">
             {config.label}
           </span>
 
@@ -385,7 +385,7 @@ export const TileCard = memo(function TileCard({
             </span>
           )}
         </div>
-        <div className={`flex items-center gap-2 flex-shrink-0 ${isTextRTL ? 'flex-row-reverse' : ''}`} style={{ color: "inherit" }}>
+        <div className={`flex items-center gap-2 shrink-0 ${isTextRTL ? 'flex-row-reverse' : ''}`} style={{ color: "inherit" }}>
           {block.influencedBy && block.influencedBy.length > 0 && (
             <button
               onMouseEnter={() => !isConnectionLocked && onConnectionHover?.(block.id)}
@@ -404,9 +404,9 @@ export const TileCard = memo(function TileCard({
               }`}
               title={isConnectionLocked ? "Click to unlock connections" : `Show ${block.influencedBy.length} connection${block.influencedBy.length !== 1 ? 's' : ''} — click to lock`}
             >
-              <div className="h-[5px] w-[5px] rounded-full bg-current" />
-              <div className={`h-[3px] w-[3px] rounded-full bg-current ${isConnectionLocked ? "opacity-100" : "opacity-60"}`} />
-              <div className="h-[5px] w-[5px] rounded-full bg-current" />
+              <div className="h-1.25 w-1.25 rounded-full bg-current" />
+              <div className={`h-0.75 w-0.75 rounded-full bg-current ${isConnectionLocked ? "opacity-100" : "opacity-60"}`} />
+              <div className="h-1.25 w-1.25 rounded-full bg-current" />
             </button>
           )}
           <span className="font-mono text-[10px] font-medium opacity-70">
@@ -431,7 +431,7 @@ export const TileCard = memo(function TileCard({
                 e.stopPropagation()
                 onTogglePin(block.id)
               }}
-              className={`flex h-4 w-4 items-center justify-center rounded-sm transition-all shadow-sm ${block.isPinned ? "bg-black/20 opacity-100 scale-110 !opacity-100" : "opacity-40 hover:opacity-100 hover:bg-black/10"}`}
+              className={`flex h-4 w-4 items-center justify-center rounded-sm transition-all shadow-sm ${block.isPinned ? "bg-black/20 opacity-100 scale-110" : "opacity-40 hover:opacity-100 hover:bg-black/10"}`}
               aria-label={block.isPinned ? "Unpin note" : "Pin note"}
               title={block.isPinned ? "Unpin note" : "Pin note"}
             >
@@ -518,7 +518,7 @@ export const TileCard = memo(function TileCard({
                     }}
                     className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-all hover:bg-secondary/60 ${isActive ? "bg-secondary/80" : ""}`}
                   >
-                    <TypeIcon className="h-3 w-3 flex-shrink-0" style={{ color: cfg.accentVar }} />
+                    <TypeIcon className="h-3 w-3 shrink-0" style={{ color: cfg.accentVar }} />
                     <span
                       className="font-mono text-[10px] uppercase tracking-wide"
                       style={{ color: isActive ? cfg.accentVar : undefined }}
@@ -551,7 +551,7 @@ export const TileCard = memo(function TileCard({
           <p className="px-2.5 pt-2 pb-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground/50">
             Move or copy to space
           </p>
-          <div className="flex flex-col gap-px p-1.5 pt-0 max-h-[280px] overflow-y-auto">
+          <div className="flex flex-col gap-px p-1.5 pt-0 max-h-70 overflow-y-auto">
             {workspaces.filter(w => w.id !== activeWorkspaceId).map(w => (
               <div
                 key={w.id}
@@ -722,7 +722,7 @@ export const TileCard = memo(function TileCard({
 
             {/* Confidence bar */}
             {block.confidence !== undefined && block.confidence !== null && !isEditing && (
-              <div className={`px-3 pb-2 flex-shrink-0 transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}>
+              <div className={`px-3 pb-2 shrink-0 transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-mono text-[9px] text-muted-foreground">Confidence</span>
                   <span className="font-mono text-[9px] text-muted-foreground">{Math.round(block.confidence)}%</span>
@@ -744,7 +744,7 @@ export const TileCard = memo(function TileCard({
             {/* Footer */}
             <div
               ref={footerRef}
-              className={`relative flex flex-shrink-0 flex-col transition-all duration-300 ease-in-out ${
+              className={`relative flex shrink-0 flex-col transition-all duration-300 ease-in-out ${
                 isFooterExpanded ? "bg-secondary/40" : "bg-black/25"
               }`}
               style={{
@@ -764,7 +764,7 @@ export const TileCard = memo(function TileCard({
                       }}
                     >
                       <span className="opacity-70">#</span>
-                      <span className="truncate max-w-[120px]">{block.category || "no-topic"}</span>
+                      <span className="truncate max-w-30">{block.category || "no-topic"}</span>
                     </span>
 
                     {block.influencedBy && block.influencedBy.length > 0 && (
@@ -781,7 +781,7 @@ export const TileCard = memo(function TileCard({
                         </div>
 
                         {/* Hover Tooltip */}
-                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2 rounded-sm bg-black/90 backdrop-blur-md border border-white/10 shadow-xl opacity-0 translate-y-2 pointer-events-none group-hover/influences:opacity-100 group-hover/influences:translate-y-0 transition-all z-[100]">
+                        <div className="absolute bottom-full left-0 mb-2 w-56 p-2 rounded-sm bg-black/90 backdrop-blur-md border border-white/10 shadow-xl opacity-0 translate-y-2 pointer-events-none group-hover/influences:opacity-100 group-hover/influences:translate-y-0 transition-all z-100">
                           <h5 className="font-mono text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 border-b border-white/5 pb-1">Connected nodes</h5>
                           <div className="flex flex-col gap-1">
                             {block.influencedBy.slice(0, 5).map((id, i) => {
@@ -811,12 +811,12 @@ export const TileCard = memo(function TileCard({
                       onClick={() => setIsFooterExpanded(!isFooterExpanded)}
                       className={`rounded-sm p-1 transition-all ${isFooterExpanded ? 'bg-primary/20 text-primary' : 'text-muted-foreground/40 hover:text-muted-foreground/60'}`}
                     >
-                      {isFooterExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3 rotate-[-90deg]" />}
+                      {isFooterExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3 -rotate-90" />}
                     </button>
                   )}
                   
                   <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-secondary/30 border border-border/20 transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-20"}`}>
-                    <span className="font-mono text-[8px] text-muted-foreground/50 uppercase tracking-[0.1em]">Node ID:</span>
+                    <span className="font-mono text-[8px] text-muted-foreground/50 uppercase tracking-widest">Node ID:</span>
                     <span className="font-mono text-[10px] text-muted-foreground/80 font-bold">#{block.id.slice(0, 6)}</span>
                   </div>
                 </div>
@@ -896,7 +896,7 @@ function renderBody(
       return (
         <div className={`flex items-start gap-2 ${isRTL(text) ? 'flex-row-reverse' : ''}`}>
           <div
-            className="mt-0.5 flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-sm border"
+            className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border"
             style={{
               borderColor: accent,
               background: isDone ? accent : "transparent",
@@ -922,7 +922,7 @@ function renderBody(
           <p className="text-lg font-medium leading-relaxed tracking-tight text-foreground prose-invert">
             {linkifyText(text)}
           </p>
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+          <div className="h-px w-full bg-linear-to-r from-transparent via-primary/20 to-transparent" />
         </div>
       )
     default:
