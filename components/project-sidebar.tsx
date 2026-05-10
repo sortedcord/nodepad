@@ -67,6 +67,9 @@ export function ProjectSidebar({
   openToSettings,
   onSettingsOpened,
 }: ProjectSidebarProps) {
+  const SIDEBAR_MIN_WIDTH = 200
+  const SIDEBAR_MAX_WIDTH = 420
+  const SIDEBAR_WIDTH_STORAGE_KEY = "nodepad.sidebar.width"
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -74,6 +77,10 @@ export function ProjectSidebar({
   const [showKey, setShowKey] = useState(false)
   const [modelOpen, setModelOpen] = useState(false)
   const [providerOpen, setProviderOpen] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(240)
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeStartXRef = useRef(0)
+  const resizeStartWidthRef = useRef(240)
   // local draft for settings (only save on "Save")
   const [draft, setDraft] = useState<AISettings>(aiSettings)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -89,6 +96,52 @@ export function ProjectSidebar({
   useEffect(() => {
     if (showSettings) setDraft(aiSettings)
   }, [showSettings])
+
+  // Load saved width (client only)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY)
+    if (!stored) return
+    const parsed = Number(stored)
+    if (Number.isFinite(parsed)) {
+      const next = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, parsed))
+      setSidebarWidth(next)
+    }
+  }, [])
+
+  // Persist width
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth))
+  }, [sidebarWidth])
+
+  useEffect(() => {
+    if (!isResizing) return
+    const body = document.body
+    const previousUserSelect = body.style.userSelect
+    const previousCursor = body.style.cursor
+    body.style.userSelect = "none"
+    body.style.cursor = "col-resize"
+    const handleMove = (event: MouseEvent) => {
+      const delta = event.clientX - resizeStartXRef.current
+      const nextWidth = Math.min(
+        SIDEBAR_MAX_WIDTH,
+        Math.max(SIDEBAR_MIN_WIDTH, resizeStartWidthRef.current + delta)
+      )
+      setSidebarWidth(nextWidth)
+    }
+    const handleUp = () => {
+      setIsResizing(false)
+    }
+    window.addEventListener("mousemove", handleMove)
+    window.addEventListener("mouseup", handleUp)
+    return () => {
+      body.style.userSelect = previousUserSelect
+      body.style.cursor = previousCursor
+      window.removeEventListener("mousemove", handleMove)
+      window.removeEventListener("mouseup", handleUp)
+    }
+  }, [isResizing])
 
   // Jump straight to settings when requested externally
   useEffect(() => {
@@ -145,13 +198,13 @@ export function ProjectSidebar({
   return (
     <div
       style={{
-        width: isOpen ? 240 : 0,
+        width: isOpen ? sidebarWidth : 0,
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden"
       }}
       className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 backdrop-blur-3xl flex flex-col h-full"
     >
-      <div className="w-60 flex flex-col h-full">
+      <div className="flex flex-col h-full" style={{ width: sidebarWidth }}>
         {/* Header */}
         <div className="flex h-10 items-center justify-between border-b border-border bg-card/5 backdrop-blur-md px-3 py-1.5 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -611,6 +664,20 @@ export function ProjectSidebar({
             </div>
           )}
         </div>
+
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          onMouseDown={(event) => {
+            if (!isOpen) return
+            event.preventDefault()
+            setIsResizing(true)
+            resizeStartXRef.current = event.clientX
+            resizeStartWidthRef.current = sidebarWidth
+          }}
+          className={`absolute right-0 top-0 h-full w-1 cursor-col-resize transition-colors ${isResizing ? "bg-primary/30" : "bg-transparent hover:bg-white/10"}`}
+        />
       </div>
     </div>
   )
