@@ -8,6 +8,7 @@ import {
   FolderInput, Download, Brain, Zap, Globe, Search, Check, Mail
 } from "lucide-react"
 import { useModKey } from "@/lib/utils"
+import { getKeyboardShortcuts } from "@/lib/keybinds"
 
 interface AboutPanelProps {
   open: boolean
@@ -96,6 +97,7 @@ const CONTENT_TYPE_HIGHLIGHTS = [
 
 export function AboutPanel({ open, onClose }: AboutPanelProps) {
   const mod = useModKey()
+  const shortcuts = getKeyboardShortcuts(mod)
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <SheetContent
@@ -299,10 +301,9 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
           <Section title="Keyboard shortcuts">
             <div className="rounded-sm border border-border overflow-hidden">
               <div className="px-3 divide-y divide-border/40">
-                <Shortcut keys={[mod, "K"]} label="Command menu" />
-                <Shortcut keys={[mod, "Z"]} label="Undo last action" />
-                <Shortcut keys={["Enter"]} label="Submit a new node" />
-                <Shortcut keys={["Esc"]} label="Close command menu / deselect" />
+                {shortcuts.map((shortcut) => (
+                  <Shortcut key={`${shortcut.label}-${shortcut.keys.join("-")}`} keys={shortcut.keys} label={shortcut.label} />
+                ))}
               </div>
             </div>
           </Section>

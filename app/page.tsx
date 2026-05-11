@@ -24,6 +24,7 @@ import { downloadNodepadFile, parseNodepadFile, NodepadParseError } from "@/lib/
 import { detectContentType } from "@/lib/detect-content-type"
 import { clearSession, getSessionUser, type SessionUser } from "@/lib/auth"
 import { fetchUserState, saveUserState } from "@/lib/user-state"
+import { getGlobalKeybindAction } from "@/lib/keybinds"
 
 const SKIP_LOGIN_KEY = "nodepad-skip-login"
 const GUEST_PROJECTS_KEY = "nodepad-guest-projects"
@@ -683,11 +684,16 @@ export default function Page() {
 
   useEffect(() => {
     const handleKeys = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      const action = getGlobalKeybindAction(e)
+      if (action === "command-menu") {
         e.preventDefault()
         setIsCommandKOpen(prev => !prev)
       }
-      if (e.key === "z" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+      if (action === "toggle-sidebar") {
+        e.preventDefault()
+        setIsSidebarOpen(prev => !prev)
+      }
+      if (action === "undo") {
         // Don't intercept while typing in an input/textarea
         const tag = (e.target as HTMLElement).tagName
         if (tag !== "INPUT" && tag !== "TEXTAREA") {
@@ -695,7 +701,7 @@ export default function Page() {
           undo()
         }
       }
-      if (e.key === "Escape") {
+      if (action === "escape") {
         if (isCommandKOpen) {
           setIsCommandKOpen(false)
         } else if (isGhostPanelOpen) {
