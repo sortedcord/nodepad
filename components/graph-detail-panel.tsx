@@ -178,7 +178,7 @@ export function GraphDetailPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden border-l border-border/60 bg-card">
+    <div className="flex h-full flex-col overflow-hidden border-l border-border/60 bg-card large-card-container isolated-section">
 
       {/* ── Header bar — matches tile-card style ───────────────────────── */}
       <div

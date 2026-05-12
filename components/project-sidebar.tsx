@@ -149,7 +149,7 @@ export function ProjectSidebar({
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden"
       }}
-      className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 backdrop-blur-3xl flex flex-col h-full"
+      className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 backdrop-blur-3xl flex flex-col h-full isolated-section"
     >
       <div className="w-[240px] flex flex-col h-full">
         {/* Header */}
@@ -186,7 +186,7 @@ export function ProjectSidebar({
         <div className="flex-1 overflow-hidden relative">
           <AnimatePresence mode="wait" initial={false}>
             {!showSettings ? (
-              <motion.div
+              <div
                 key="projects"
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -262,7 +262,7 @@ export function ProjectSidebar({
                     {/* Delete Confirmation Overlay */}
                     <AnimatePresence>
                       {deletingId === project.id && (
-                        <motion.div
+                        <div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -286,14 +286,14 @@ export function ProjectSidebar({
                               <X className="h-3 w-3" />
                             </button>
                           </div>
-                        </motion.div>
+                        </div>
                       )}
                     </AnimatePresence>
                   </div>
                 ))}
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
+              <div
                 key="settings"
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -316,7 +316,7 @@ export function ProjectSidebar({
                     </button>
                     <AnimatePresence>
                       {providerOpen && (
-                        <motion.div
+                        <div
                           initial={{ opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -4 }}
@@ -349,7 +349,7 @@ export function ProjectSidebar({
                               <span className="font-mono text-[10px] font-bold text-foreground">{preset.label}</span>
                             </button>
                           ))}
-                        </motion.div>
+                        </div>
                       )}
                     </AnimatePresence>
                   </div>
@@ -445,7 +445,7 @@ export function ProjectSidebar({
                       </button>
                       <AnimatePresence>
                         {modelOpen && (
-                          <motion.div
+                          <div
                             initial={{ opacity: 0, y: -4 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
@@ -494,7 +494,7 @@ export function ProjectSidebar({
                                 </div>
                               </button>
                             )}
-                          </motion.div>
+                          </div>
                         )}
                       </AnimatePresence>
                     </div>
@@ -561,7 +561,7 @@ export function ProjectSidebar({
                   <span className={`h-1.5 w-1.5 rounded-full ${draft.apiKey ? "bg-primary animate-pulse" : "bg-white/30"}`} />
                   {draft.apiKey ? `${currentPreset.label} — API key configured` : "No API key — AI disabled"}
                 </div>
-              </motion.div>
+              </div>
             )}
           </AnimatePresence>
         </div>

@@ -30,7 +30,7 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
+        <div
           ref={overlayRef}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -39,7 +39,7 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
           className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
         >
-          <motion.div
+          <div
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -93,8 +93,8 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
                 Skip to app →
               </button>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
     </AnimatePresence>
   )

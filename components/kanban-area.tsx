@@ -102,7 +102,7 @@ export function KanbanArea({
   const scrollToColumn = useCallback((key: string) => {
     const el = document.getElementById(`kanban-col-${key}`)
     if (el && containerRef.current) {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })
+      el.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" })
     }
   }, [])
 
@@ -124,7 +124,7 @@ export function KanbanArea({
       >
         <AnimatePresence mode="popLayout">
           {columns.map(([key, col]) => (
-            <motion.div
+            <div
               key={key}
               id={`kanban-col-${key}`}
               layout
@@ -179,7 +179,7 @@ export function KanbanArea({
                   )
                 })}
               </div>
-            </motion.div>
+            </div>
           ))}
         </AnimatePresence>
         

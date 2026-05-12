@@ -230,7 +230,7 @@ export function StatusBar({
             {/* Help tooltip — shown after intro modal is dismissed */}
             <AnimatePresence>
               {showHelpTooltip && (
-                <motion.div
+                <div
                   initial={{ opacity: 0, y: -6, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.96 }}
@@ -244,7 +244,7 @@ export function StatusBar({
                       Find help &amp; the intro video here anytime
                     </p>
                   </div>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </div>

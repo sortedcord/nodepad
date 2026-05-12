@@ -1199,7 +1199,7 @@ export default function Page() {
         {/* Undo toast */}
         <AnimatePresence>
           {undoToast && (
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
@@ -1209,7 +1209,7 @@ export default function Page() {
               <div className="px-3 py-1.5 rounded-sm bg-black/90 border border-white/15 backdrop-blur-md shadow-xl">
                 <span className="font-mono text-[10px] text-white/70 tracking-tight whitespace-nowrap">{undoToast}</span>
               </div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 

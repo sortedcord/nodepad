@@ -15,7 +15,7 @@ export function TilingMinimap({ pages, activePageIdx, onPageClick }: TilingMinim
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, x: 8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
@@ -30,7 +30,7 @@ export function TilingMinimap({ pages, activePageIdx, onPageClick }: TilingMinim
             {/* Tooltip — slides in from the right, appears to the left of the button */}
             <AnimatePresence>
               {hoveredIdx === idx && (
-                <motion.div
+                <div
                   initial={{ opacity: 0, x: 6 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 6 }}
@@ -59,7 +59,7 @@ export function TilingMinimap({ pages, activePageIdx, onPageClick }: TilingMinim
                       )
                     })}
                   </div>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
 
@@ -101,6 +101,6 @@ export function TilingMinimap({ pages, activePageIdx, onPageClick }: TilingMinim
           </div>
         )
       })}
-    </motion.div>
+    </div>
   )
 }

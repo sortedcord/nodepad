@@ -52,7 +52,7 @@ export function TileIndex({ blocks, onHighlight, highlightedId, onClose, isOpen,
   const scrollToTile = (id: string) => {
     const el = document.getElementById(`tile-${id}`)
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" })
+      el.scrollIntoView({ behavior: "auto", block: "center" })
       onHighlight(id)
       setTimeout(() => onHighlight(null), 1500)
     }
@@ -61,7 +61,7 @@ export function TileIndex({ blocks, onHighlight, highlightedId, onClose, isOpen,
   const scrollToColumn = (key: string) => {
     const el = document.getElementById(`kanban-col-${key}`)
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })
+      el.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" })
     }
   }
 
@@ -72,7 +72,7 @@ export function TileIndex({ blocks, onHighlight, highlightedId, onClose, isOpen,
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden"
       }}
-      className="flex flex-col h-full bg-black/20 backdrop-blur-3xl border-l border-border shrink-0 overflow-hidden relative z-50 transition-all duration-200 ease-in-out"
+      className="flex flex-col h-full bg-black/20 backdrop-blur-3xl border-l border-border shrink-0 overflow-hidden relative z-50 transition-all duration-200 ease-in-out isolated-section"
     >
       <div className="w-[240px] flex flex-col h-full">
         {/* Header */}

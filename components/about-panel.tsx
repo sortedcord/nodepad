@@ -100,7 +100,7 @@ export function AboutPanel({ open, onClose }: AboutPanelProps) {
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-2xl flex flex-col gap-0 p-0 bg-card border-l border-border z-[200] overflow-hidden"
+        className="w-full sm:max-w-2xl flex flex-col gap-0 p-0 bg-card border-l border-border z-[200] overflow-hidden large-card-container isolated-section"
       >
         <SheetTitle className="sr-only">About nodepad</SheetTitle>
 

@@ -292,7 +292,7 @@ export const TileCard = memo(function TileCard({
   return (
     <div
       ref={cardRef}
-      className={`group relative flex h-full w-full flex-col overflow-hidden border transition-all duration-200 ${
+      className={`group relative flex h-full w-full flex-col overflow-hidden border transition-all duration-200 isolated-section ${
         isHighlighted ? "z-10 scale-[1.002] border-primary/50 ring-2 ring-primary/20" : "border-border/50"
       } ${
         isTask ? "bg-[color-mix(in_oklch,var(--type-task)_8%,transparent)] border-[color-mix(in_oklch,var(--type-task)_25%,transparent)] shadow-[color-mix(in_oklch,var(--type-task)_8%,transparent)]" : "bg-card/30"
@@ -602,122 +602,120 @@ export const TileCard = memo(function TileCard({
             <div
               className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden p-3 custom-scrollbar ${isTextRTL ? 'rtl-text' : ''}`}
             >
-              <div className="flex flex-col min-h-full">
-                {isEditing ? (
-                  <div className="flex w-full flex-col gap-2">
-                    <textarea
-                      ref={textareaRef}
-                      value={editText}
-                      onChange={(e) => {
-                        setEditText(e.target.value)
-                        e.target.style.height = 'auto'
-                        e.target.style.height = e.target.scrollHeight + 'px'
+              {isEditing ? (
+                <div className="flex w-full flex-col gap-2">
+                  <textarea
+                    ref={textareaRef}
+                    value={editText}
+                    onChange={(e) => {
+                      setEditText(e.target.value)
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onBlur={handleSave}
+                    className={`w-full resize-none rounded-sm bg-secondary/30 px-2 py-1.5 text-base font-bold leading-relaxed text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 ${isTextRTL ? 'rtl-text' : ''}`}
+                    style={{ minHeight: "3rem" }}
+                  />
+                  <div className="flex items-center gap-1">
+                    <span className="font-mono text-[10px] text-muted-foreground/60">
+                      Enter ↵ save · Shift+Enter newline · Esc cancel
+                    </span>
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        handleSave()
                       }}
-                      onKeyDown={handleKeyDown}
-                      onBlur={handleSave}
-                      className={`w-full resize-none rounded-sm bg-secondary/30 px-2 py-1.5 text-base font-bold leading-relaxed text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 ${isTextRTL ? 'rtl-text' : ''}`}
-                      style={{ minHeight: "3rem" }}
-                    />
-                    <div className="flex items-center gap-1">
-                      <span className="font-mono text-[10px] text-muted-foreground/60">
-                        Enter ↵ save · Shift+Enter newline · Esc cancel
+                      className="ml-auto flex h-5 w-5 items-center justify-center rounded-sm transition-transform active:scale-95"
+                      style={{ background: accent, color: "var(--background)" }}
+                      aria-label="Save edit"
+                    >
+                      <Check className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full">
+                  {block.isError && (
+                    <div className="mb-3 flex items-start gap-2 rounded-sm border border-red-500/20 bg-red-500/10 px-2.5 py-2">
+                      <span className="mt-px font-mono text-[9px] text-red-400/80 uppercase tracking-wider leading-relaxed">
+                        {block.statusText === "no-api-key"
+                          ? <>AI enrichment failed — no API key. Open the <strong className="text-red-300">☰ sidebar → Settings</strong> to add your API key.</>
+                          : block.statusText
+                            ? <>{block.statusText}{" "}<span className="opacity-60">Double-click to retry.</span></>
+                            : "Enrichment failed. Double-click to retry."}
                       </span>
-                      <button
-                        onMouseDown={(e) => {
-                          e.preventDefault()
-                          handleSave()
-                        }}
-                        className="ml-auto flex h-5 w-5 items-center justify-center rounded-sm transition-transform active:scale-95"
-                        style={{ background: accent, color: "var(--background)" }}
-                        aria-label="Save edit"
-                      >
-                        <Check className="h-3 w-3" />
-                      </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="w-full">
-                    {block.isError && (
-                      <div className="mb-3 flex items-start gap-2 rounded-sm border border-red-500/20 bg-red-500/10 px-2.5 py-2">
-                        <span className="mt-px font-mono text-[9px] text-red-400/80 uppercase tracking-wider leading-relaxed">
-                          {block.statusText === "no-api-key"
-                            ? <>AI enrichment failed — no API key. Open the <strong className="text-red-300">☰ sidebar → Settings</strong> to add your API key.</>
-                            : block.statusText
-                              ? <>{block.statusText}{" "}<span className="opacity-60">Double-click to retry.</span></>
-                              : "Enrichment failed. Double-click to retry."}
-                        </span>
-                      </div>
-                    )}
-                    <div className={block.isEnriching ? "shimmer-body" : ""}>
-                      {isTask && block.subTasks ? (
-                        <div className="flex flex-col gap-2">
-                          {block.subTasks.map(st => (
-                            <div key={st.id} className="group/task flex items-start gap-3 rounded-md bg-white/5 p-2 transition-colors hover:bg-white/10">
-                              <button
-                                onClick={() => onToggleSubTask?.(block.id, st.id)}
-                                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all`} style={{ backgroundColor: st.isDone ? 'var(--type-task)' : 'transparent', borderColor: st.isDone ? 'var(--type-task)' : 'color-mix(in oklch, var(--type-task) 50%, transparent)' }}
-                              >
-                                {st.isDone && <Check className="h-3 w-3 text-white" />}
-                              </button>
-                              <span className={`flex-1 text-sm leading-relaxed transition-all ${st.isDone ? 'text-foreground/40 line-through' : 'text-foreground'}`}>
-                                {st.text}
-                              </span>
-                              <button
-                                onClick={() => {
-                                  if (confirm("Delete this task?")) {
-                                    onDeleteSubTask?.(block.id, st.id)
-                                  }
-                                }}
-                                className="opacity-0 group-hover/task:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
-                              >
-                                <X className="h-3 w-3 text-red-400" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        renderBody(block.text, config.bodyStyle, accent)
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Annotation */}
-                {!isEditing && (block.annotation || isEditingAnnotation) && (
-                  <div className={`annotation-area mt-3 border-t border-border/40 pt-3 flex flex-col ${isEditingAnnotation ? 'flex-1' : ''}`}>
-                    {isEditingAnnotation ? (
-                        <div className="flex flex-1 w-full flex-col gap-2">
-                          <textarea
-                            ref={annotationRef}
-                            value={editAnnotation}
-                            onChange={(e) => setEditAnnotation(e.target.value)}
-                            onKeyDown={handleAnnotationKeyDown}
-                            onBlur={handleAnnotationSave}
-                            className={`flex-1 w-full resize-none rounded-md bg-secondary/20 px-3 py-3 text-sm leading-relaxed text-foreground border border-border/20 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:bg-secondary/30 transition-colors ${isAnnotationRTL ? 'rtl-text' : ''}`}
-                            placeholder="Start writing..."
-                          />
-                          <div className="flex items-center justify-between px-1">
-                            <span className="font-mono text-[10px] text-muted-foreground/60">
-                              Enter ↵ save · Shift+Enter newline · Esc cancel
-                            </span>
-                            <span className="font-mono text-[9px] text-primary font-bold uppercase tracking-widest opacity-80">Markdown Editor</span>
-                          </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                          <div className={`prose-sm prose-invert max-w-none text-[13px] leading-relaxed text-foreground/80 ${block.isEnriching ? "shimmer-body" : ""} ${isAnnotationRTL ? 'rtl-text' : ''}`}>
-                            <ReactMarkdown 
-                              remarkPlugins={[remarkGfm]}
-                              components={MarkdownComponents as any}
+                  )}
+                  <div className={block.isEnriching ? "shimmer-body" : ""}>
+                    {isTask && block.subTasks ? (
+                      <div className="flex flex-col gap-2">
+                        {block.subTasks.map(st => (
+                          <div key={st.id} className="group/task flex items-start gap-3 rounded-md bg-white/5 p-2 transition-colors hover:bg-white/10">
+                            <button
+                              onClick={() => onToggleSubTask?.(block.id, st.id)}
+                              className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all`} style={{ backgroundColor: st.isDone ? 'var(--type-task)' : 'transparent', borderColor: st.isDone ? 'var(--type-task)' : 'color-mix(in oklch, var(--type-task) 50%, transparent)' }}
                             >
-                              {block.annotation || ""}
-                            </ReactMarkdown>
+                              {st.isDone && <Check className="h-3 w-3 text-white" />}
+                            </button>
+                            <span className={`flex-1 text-sm leading-relaxed transition-all ${st.isDone ? 'text-foreground/40 line-through' : 'text-foreground'}`}>
+                              {st.text}
+                            </span>
+                            <button
+                              onClick={() => {
+                                if (confirm("Delete this task?")) {
+                                  onDeleteSubTask?.(block.id, st.id)
+                                }
+                              }}
+                              className="opacity-0 group-hover/task:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                            >
+                              <X className="h-3 w-3 text-red-400" />
+                            </button>
                           </div>
-                        </div>
+                        ))}
+                      </div>
+                    ) : (
+                      renderBody(block.text, config.bodyStyle, accent)
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Annotation */}
+              {!isEditing && (block.annotation || isEditingAnnotation) && (
+                <div className={`annotation-area mt-3 border-t border-border/40 pt-3 flex flex-col ${isEditingAnnotation ? 'flex-1' : ''}`}>
+                  {isEditingAnnotation ? (
+                      <div className="flex flex-1 w-full flex-col gap-2">
+                        <textarea
+                          ref={annotationRef}
+                          value={editAnnotation}
+                          onChange={(e) => setEditAnnotation(e.target.value)}
+                          onKeyDown={handleAnnotationKeyDown}
+                          onBlur={handleAnnotationSave}
+                          className={`flex-1 w-full resize-none rounded-md bg-secondary/20 px-3 py-3 text-sm leading-relaxed text-foreground border border-border/20 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:bg-secondary/30 transition-colors ${isAnnotationRTL ? 'rtl-text' : ''}`}
+                          placeholder="Start writing..."
+                        />
+                        <div className="flex items-center justify-between px-1">
+                          <span className="font-mono text-[10px] text-muted-foreground/60">
+                            Enter ↵ save · Shift+Enter newline · Esc cancel
+                          </span>
+                          <span className="font-mono text-[9px] text-primary font-bold uppercase tracking-widest opacity-80">Markdown Editor</span>
+                        </div>
+                      </div>
+                  ) : (
+                      <div className="flex flex-col gap-2">
+                        <div className={`prose-sm prose-invert max-w-none text-[13px] leading-relaxed text-foreground/80 ${block.isEnriching ? "shimmer-body" : ""} ${isAnnotationRTL ? 'rtl-text' : ''}`}>
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={MarkdownComponents as any}
+                          >
+                            {block.annotation || ""}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Confidence bar */}

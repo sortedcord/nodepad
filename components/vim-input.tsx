@@ -103,12 +103,12 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
 
   // Scroll focused item into view
   React.useEffect(() => {
-    itemRefs.current[focusedIdx]?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    itemRefs.current[focusedIdx]?.scrollIntoView({ block: "nearest", behavior: "auto" })
   }, [focusedIdx])
 
   React.useEffect(() => {
     if (!showTagSuggestions) return
-    tagItemRefs.current[tagFocusedIdx]?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    tagItemRefs.current[tagFocusedIdx]?.scrollIntoView({ block: "nearest", behavior: "auto" })
   }, [tagFocusedIdx, showTagSuggestions])
 
   // ── Helpers ─────────────────────────────────────────────────────────────
@@ -244,7 +244,7 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
         {/* ── Command Popup ──────────────────────────────────────────────── */}
         <AnimatePresence>
           {isCommandKOpen && (
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
@@ -379,7 +379,7 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 

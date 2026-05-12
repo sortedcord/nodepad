@@ -161,7 +161,7 @@ export function TilingArea({
     const container = scrollContainerRef.current
     if (!container) return
     container.querySelector<HTMLElement>(`[data-page-idx="${idx}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+      ?.scrollIntoView({ behavior: "auto", block: "start" })
   }, [])
 
   // Show minimap as soon as content overflows the visible area, regardless of page count
@@ -243,7 +243,7 @@ export function TilingArea({
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#020202]">
-      {/* Task Header stays sticky at top */}
+      {/* Task header at the top */}
       {taskBlock && (
         <div className={`w-full shrink-0 p-1 z-10 transition-[opacity,filter] duration-300 ${activeConnectionId && !relatedIds.has(taskBlock.id) ? 'opacity-15 saturate-0' : 'opacity-100'}`}>
             <TileCard
