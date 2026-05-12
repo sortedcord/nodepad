@@ -276,6 +276,7 @@ export function TilingArea({
       <div
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto custom-scrollbar p-0.5 relative"
+        style={{ willChange: 'transform' }}
         onClick={e => {
           // Clear connection lock when clicking the canvas background (not a tile)
           if (e.target === e.currentTarget) setLockedConnectionId(null)
@@ -292,6 +293,8 @@ export function TilingArea({
                   key={idx}
                   data-page-idx={idx}
                   className={`flex w-full ${heightClass} border-b border-white/5 last:border-0`}
+                  style={{ contentVisibility: 'auto', containIntrinsicSize: '0 100vh' }}
+
                 >
                   {renderBSPNode(tree, chunkedPages[idx])}
                 </div>

@@ -249,7 +249,7 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute bottom-full left-0 right-0 w-full border-t border-white/10 bg-black/85 backdrop-blur-3xl shadow-[0_-24px_60px_-12px_rgba(0,0,0,0.6)]"
+              className="absolute bottom-full left-0 right-0 w-full border-t border-white/10 bg-black/85  shadow-[0_-24px_60px_-12px_rgba(0,0,0,0.6)]"
               onKeyDown={handlePopupKeyDown}
             >
               {/* Search input */}

@@ -149,11 +149,11 @@ export function ProjectSidebar({
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden"
       }}
-      className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 backdrop-blur-3xl flex flex-col h-full isolated-section"
+      className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 flex flex-col h-full isolated-section"
     >
       <div className="w-[240px] flex flex-col h-full">
         {/* Header */}
-        <div className="flex h-10 items-center justify-between border-b border-border bg-card/5 backdrop-blur-md px-3 py-1.5 shrink-0">
+        <div className="flex h-10 items-center justify-between border-b border-border bg-card/5 px-3 py-1.5 shrink-0">
           <div className="flex items-center gap-2.5">
             {showSettings ? (
               <button

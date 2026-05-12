@@ -301,6 +301,7 @@ export const TileCard = memo(function TileCard({
       onMouseLeave={() => setIsHovered(false)}
       onDoubleClick={handleDoubleClick}
       style={{
+        contain: 'layout style paint',
         borderLeft: isTask 
           ? `3px solid var(--type-task)` 
           : block.contentType === "thesis" 
@@ -397,7 +398,7 @@ export const TileCard = memo(function TileCard({
                 }
                 onConnectionLock?.(block.id)
               }}
-              className={`flex items-center gap-[2.5px] transition-all duration-150 rounded-sm px-0.5 ${
+              className={`flex items-center gap-[2.5px] transition-[opacity,box-shadow,border-color] duration-150 rounded-sm px-0.5 ${
                 isConnectionLocked
                   ? "opacity-100 bg-black/20"
                   : "opacity-35 hover:opacity-90"

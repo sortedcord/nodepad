@@ -26,7 +26,7 @@ export function GhostPanel({ ghostNotes, isOpen, onClose, onClaim, onDismiss }: 
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden",
       }}
-      className="flex flex-col h-full bg-black/20 backdrop-blur-3xl border-l border-border shrink-0 overflow-hidden relative z-50 transition-all duration-200 ease-in-out isolated-section"
+      className="flex flex-col h-full bg-black/20 border-l border-border shrink-0 overflow-hidden relative z-50 transition-all duration-200 ease-in-out isolated-section"
     >
       <div className="w-[272px] flex flex-col h-full">
         {/* Header */}
