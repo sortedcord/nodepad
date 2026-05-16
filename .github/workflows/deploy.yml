@@ -24,7 +24,6 @@ jobs:
 
       - name: Pull Latest Channges
         run: |
-          git reset --hard origin/main
           git pull
       - name: Install Dependencies
         run: |
