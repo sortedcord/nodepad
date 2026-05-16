@@ -6,6 +6,9 @@ import { X, Check, Pin, RefreshCw, ChevronDown, ChevronRight, ChevronLeft, Link 
 import { motion } from "framer-motion"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
+import rehypeKatex from "rehype-katex"
+import "katex/dist/katex.min.css"
 import { CONTENT_TYPE_CONFIG, type ContentType } from "@/lib/content-types"
 
 export interface TextBlock {
@@ -707,7 +710,8 @@ export const TileCard = memo(function TileCard({
                         <div className="flex flex-col gap-2">
                           <div className={`prose-sm prose-invert max-w-none text-[13px] leading-relaxed text-foreground/80 ${block.isEnriching ? "shimmer-body" : ""} ${isAnnotationRTL ? 'rtl-text' : ''}`}>
                             <ReactMarkdown 
-                              remarkPlugins={[remarkGfm]}
+                              remarkPlugins={[remarkGfm, remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
                               components={MarkdownComponents as any}
                             >
                               {block.annotation || ""}
