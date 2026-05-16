@@ -68,7 +68,7 @@ function confidenceBar(c: number): string {
   const clamped = Math.min(100, Math.max(0, c))
   const pct     = Math.round(clamped)
   const filled  = Math.round((clamped / 100) * 5)
-  const bar    = "█".repeat(filled) + "░".repeat(5 - filled)
+  const bar     = "█".repeat(filled) + "░".repeat(5 - filled)
   return `${bar} ${pct}%`
 }
 
