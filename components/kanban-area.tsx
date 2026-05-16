@@ -21,6 +21,10 @@ interface KanbanAreaProps {
   onToggleSubTask: (id: string, subTaskId: string) => void
   onDeleteSubTask: (id: string, subTaskId: string) => void
   collapsedIds: Set<string>
+  workspaces?: { id: string; name: string }[]
+  activeWorkspaceId?: string
+  onMoveToWorkspace?: (blockId: string, targetWorkspaceId: string) => void
+  onCopyToWorkspace?: (blockId: string, targetWorkspaceId: string) => void
 }
 
 export function KanbanArea({
@@ -36,6 +40,10 @@ export function KanbanArea({
   onToggleSubTask,
   onDeleteSubTask,
   collapsedIds,
+  workspaces,
+  activeWorkspaceId,
+  onMoveToWorkspace,
+  onCopyToWorkspace,
 }: KanbanAreaProps) {
   const mod = useModKey()
   const [hoveredConnectionId, setHoveredConnectionId] = useState<string | null>(null)
@@ -165,6 +173,10 @@ export function KanbanArea({
                         isConnectionLocked={lockedConnectionId === block.id}
                         allBlocks={blocks}
                         aiEnabled={aiEnabled}
+                        workspaces={workspaces}
+                        activeWorkspaceId={activeWorkspaceId}
+                        onMoveToWorkspace={onMoveToWorkspace}
+                        onCopyToWorkspace={onCopyToWorkspace}
                       />
                     </div>
                   )
