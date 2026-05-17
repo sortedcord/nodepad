@@ -24,6 +24,7 @@ import { downloadNodepadFile, parseNodepadFile, NodepadParseError } from "@/lib/
 import { detectContentType } from "@/lib/detect-content-type"
 import { clearSession, getSessionUser, type SessionUser } from "@/lib/auth"
 import { fetchUserState, saveUserState } from "@/lib/user-state"
+import { getGlobalKeybindAction } from "@/lib/keybinds"
 
 const SKIP_LOGIN_KEY = "nodepad-skip-login"
 const GUEST_PROJECTS_KEY = "nodepad-guest-projects"
@@ -683,11 +684,16 @@ export default function Page() {
 
   useEffect(() => {
     const handleKeys = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      const action = getGlobalKeybindAction(e)
+      if (action === "command-menu") {
         e.preventDefault()
         setIsCommandKOpen(prev => !prev)
       }
-      if (e.key === "z" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+      if (action === "toggle-sidebar") {
+        e.preventDefault()
+        setIsSidebarOpen(prev => !prev)
+      }
+      if (action === "undo") {
         // Don't intercept while typing in an input/textarea
         const tag = (e.target as HTMLElement).tagName
         if (tag !== "INPUT" && tag !== "TEXTAREA") {
@@ -695,7 +701,7 @@ export default function Page() {
           undo()
         }
       }
-      if (e.key === "Escape") {
+      if (action === "escape") {
         if (isCommandKOpen) {
           setIsCommandKOpen(false)
         } else if (isGhostPanelOpen) {
@@ -1103,12 +1109,12 @@ export default function Page() {
         />
 
         {isHydrated && !settings.apiKey && (
-          <div className="flex items-center justify-center gap-3 px-4 py-2 bg-amber-950/80 border-b border-amber-800/60 text-amber-200 text-xs shrink-0">
-            <span className="opacity-80">⚡ AI enrichment requires an <strong className="text-amber-200">OpenRouter API key</strong> — use a free model (no credits needed) or add credits for GPT-4o, Claude, and more. Configure in the <strong className="text-amber-200">☰ left panel</strong>.</span>
+          <div className="flex items-center justify-center gap-3 px-4 py-2 bg-(--ui-warning-bg) border-b border-(--ui-warning-border) text-(--ui-warning-text) text-xs shrink-0">
+            <span className="opacity-80">⚡ AI enrichment requires an <strong className="text-(--ui-warning-text)">OpenRouter API key</strong> — use a free model (no credits needed) or add credits for GPT-4o, Claude, and more. Configure in the <strong className="text-(--ui-warning-text)">☰ left panel</strong>.</span>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => { setIsSidebarOpen(true); setJumpToSettings(true) }}
-                className="px-2.5 py-1 rounded bg-amber-700/60 hover:bg-amber-600/70 text-amber-100 font-medium transition-colors cursor-pointer border border-amber-600/50"
+                className="px-2.5 py-1 rounded bg-(--ui-warning-button-bg) hover:bg-(--ui-warning-button-hover) text-(--ui-warning-button-text) font-medium transition-colors cursor-pointer border border-(--ui-warning-button-border)"
               >
                 Add API key →
               </button>
@@ -1204,7 +1210,7 @@ export default function Page() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute bottom-[72px] left-1/2 -translate-x-1/2 z-[130] pointer-events-none"
+              className="absolute bottom-18 left-1/2 -translate-x-1/2 z-130 pointer-events-none"
             >
               <div className="px-3 py-1.5 rounded-sm bg-black/90 border border-white/15 backdrop-blur-md shadow-xl">
                 <span className="font-mono text-[10px] text-white/70 tracking-tight whitespace-nowrap">{undoToast}</span>

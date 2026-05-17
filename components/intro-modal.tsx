@@ -36,7 +36,7 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-500 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
         >
           <motion.div
@@ -44,7 +44,7 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-3xl bg-[#0d0d0d] border border-white/10 rounded-sm shadow-2xl overflow-hidden"
+            className="relative w-full max-w-3xl bg-(--ui-surface-modal) border border-white/10 rounded-sm shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4">
@@ -82,7 +82,7 @@ export function IntroModal({ open, onClose }: IntroModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-white/[0.06]">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-white/6">
               <p className="text-xs text-muted-foreground/40">
                 You can replay this anytime via the <span className="font-mono font-black text-muted-foreground/60">?</span> button
               </p>

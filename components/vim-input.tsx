@@ -229,7 +229,7 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="w-full relative z-[110] flex flex-col items-center">
+    <div className="w-full relative z-110 flex flex-col items-center">
       <Command
         className="w-full"
         onKeyDown={(e) => {
@@ -272,7 +272,7 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
                 )}
               </div>
 
-              <div className="p-3 max-h-[360px] overflow-y-auto scrollbar-none space-y-3">
+              <div className="p-3 max-h-90 overflow-y-auto scrollbar-none space-y-3">
 
                 {/* ── Views ──────────────────────────────────────────────── */}
                 {viewItems.length > 0 && (
@@ -287,9 +287,9 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
                             ref={el => { itemRefs.current[i] = el }}
                             onClick={() => handleSelect(item.id)}
                             onMouseEnter={() => setFocusedIdx(i)}
-                            className={`group flex flex-col items-center justify-center gap-2 rounded-sm border py-4 px-2 transition-all duration-100 outline-none ${focused ? "bg-primary/12 border-primary/35 text-primary shadow-[0_0_0_1px_var(--primary),inset_0_1px_0_rgba(255,255,255,0.05)]" : "bg-white/[0.03] border-white/[0.07] text-white/55 hover:bg-white/[0.06] hover:border-white/20 hover:text-white/80"}`}
+                            className={`group flex flex-col items-center justify-center gap-2 rounded-sm border py-4 px-2 transition-all duration-100 outline-none ${focused ? "bg-primary/12 border-primary/35 text-primary shadow-[0_0_0_1px_var(--primary),inset_0_1px_0_rgba(255,255,255,0.05)]" : "bg-white/3 border-white/[0.07] text-white/55 hover:bg-white/6 hover:border-white/20 hover:text-white/80"}`}
                           >
-                            <item.icon className={`h-[18px] w-[18px] transition-transform duration-100 ${focused ? "scale-110" : "group-hover:scale-105"}`} />
+                            <item.icon className={`h-4.5 w-4.5 transition-transform duration-100 ${focused ? "scale-110" : "group-hover:scale-105"}`} />
                             <div className="text-center leading-tight">
                               <div className="font-mono text-[10px] font-bold tracking-tight">{item.label}</div>
                               {item.sub && <div className={`font-mono text-[7px] uppercase tracking-[0.15em] mt-0.5 ${focused ? "text-primary/60" : "text-white/40"}`}>{item.sub}</div>}
@@ -315,9 +315,9 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
                             ref={el => { itemRefs.current[idx] = el }}
                             onClick={() => handleSelect(item.id)}
                             onMouseEnter={() => setFocusedIdx(idx)}
-                            className={`group flex flex-col items-center justify-center gap-2 rounded-sm border py-4 px-2 transition-all duration-100 outline-none ${focused ? "bg-primary/12 border-primary/35 text-primary shadow-[0_0_0_1px_var(--primary),inset_0_1px_0_rgba(255,255,255,0.05)]" : "bg-white/[0.03] border-white/[0.07] text-white/55 hover:bg-white/[0.06] hover:border-white/20 hover:text-white/80"}`}
+                            className={`group flex flex-col items-center justify-center gap-2 rounded-sm border py-4 px-2 transition-all duration-100 outline-none ${focused ? "bg-primary/12 border-primary/35 text-primary shadow-[0_0_0_1px_var(--primary),inset_0_1px_0_rgba(255,255,255,0.05)]" : "bg-white/3 border-white/[0.07] text-white/55 hover:bg-white/6 hover:border-white/20 hover:text-white/80"}`}
                           >
-                            <item.icon className={`h-[18px] w-[18px] transition-transform duration-100 ${focused ? "scale-110" : "group-hover:scale-105"}`} />
+                            <item.icon className={`h-4.5 w-4.5 transition-transform duration-100 ${focused ? "scale-110" : "group-hover:scale-105"}`} />
                             <div className="text-center leading-tight">
                               <div className="font-mono text-[10px] font-bold tracking-tight">{item.label}</div>
                               {item.sub && <div className={`font-mono text-[7px] uppercase tracking-[0.15em] mt-0.5 ${focused ? "text-primary/60" : "text-white/40"}`}>{item.sub}</div>}
@@ -343,9 +343,9 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
                             ref={el => { itemRefs.current[idx] = el }}
                             onClick={() => handleSelect(item.id)}
                             onMouseEnter={() => setFocusedIdx(idx)}
-                            className={`group flex flex-col items-center justify-center gap-2 rounded-sm border py-4 px-2 transition-all duration-100 outline-none ${focused ? "bg-primary/12 border-primary/35 text-primary shadow-[0_0_0_1px_var(--primary),inset_0_1px_0_rgba(255,255,255,0.05)]" : "bg-white/[0.03] border-white/[0.07] text-white/55 hover:bg-white/[0.06] hover:border-white/20 hover:text-white/80"}`}
+                            className={`group flex flex-col items-center justify-center gap-2 rounded-sm border py-4 px-2 transition-all duration-100 outline-none ${focused ? "bg-primary/12 border-primary/35 text-primary shadow-[0_0_0_1px_var(--primary),inset_0_1px_0_rgba(255,255,255,0.05)]" : "bg-white/3 border-white/[0.07] text-white/55 hover:bg-white/6 hover:border-white/20 hover:text-white/80"}`}
                           >
-                            <item.icon className={`h-[18px] w-[18px] transition-transform duration-100 ${focused ? "scale-110" : "group-hover:scale-105"}`} />
+                            <item.icon className={`h-4.5 w-4.5 transition-transform duration-100 ${focused ? "scale-110" : "group-hover:scale-105"}`} />
                             <div className="text-center leading-tight">
                               <div className="font-mono text-[10px] font-bold tracking-tight">{item.label}</div>
                               <div className={`font-mono text-[7px] uppercase tracking-[0.15em] mt-0.5 ${focused ? "text-primary/60" : "text-white/40"}`}>{item.sub}</div>
@@ -385,7 +385,7 @@ export function VimInput({ onSubmit, onCommand, isCommandKOpen, setIsCommandKOpe
 
         {/* ── Main Input Bar ─────────────────────────────────────────────── */}
         <div className="w-full border-t border-white/20 bg-black/80 backdrop-blur-3xl px-6 py-5 flex items-center gap-4 transition-all duration-300 focus-within:border-primary/40 relative">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
           {showTagSuggestions && (
             <div className="absolute bottom-full left-6 right-6 mb-2 rounded-md border border-white/10 bg-black/90 backdrop-blur-3xl shadow-[0_-16px_40px_-18px_rgba(0,0,0,0.7)] overflow-hidden">

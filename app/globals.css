@@ -56,6 +56,29 @@
   --thesis-gradient: linear-gradient(135deg, oklch(0.7 0.15 160), oklch(0.7 0.15 250));
   --thesis-foreground: oklch(0.15 0.01 260);
   --thesis-accent: oklch(0.7 0.15 200);
+  --ui-brand: #3ecf6e;
+  --ui-surface-canvas: #020202;
+  --ui-surface-modal: #0d0d0d;
+  --ui-surface-panel: #0d0d10;
+  --ui-warning-bg: rgba(69, 26, 3, 0.8);
+  --ui-warning-border: rgba(146, 64, 14, 0.6);
+  --ui-warning-text: #fde68a;
+  --ui-warning-button-bg: rgba(180, 83, 9, 0.6);
+  --ui-warning-button-hover: rgba(217, 119, 6, 0.7);
+  --ui-warning-button-text: #fef3c7;
+  --ui-warning-button-border: rgba(217, 119, 6, 0.5);
+  --ui-danger-bg: rgba(239, 68, 68, 0.1);
+  --ui-danger-border: rgba(239, 68, 68, 0.2);
+  --ui-danger-text: rgba(248, 113, 113, 0.8);
+  --ui-danger-strong: #fca5a5;
+  --ui-danger-icon: #f87171;
+  --ui-danger-hover-bg: rgba(239, 68, 68, 0.2);
+  --ui-icon-task: #818cf8;
+  --ui-icon-thesis: #facc15;
+  --ui-icon-question: #60a5fa;
+  --ui-og-bg: #0a0a0a;
+  --ui-og-text: #f0f0f0;
+  --ui-og-muted: #666666;
 }
 
 .dark {
@@ -91,6 +114,29 @@
   --sidebar-accent-foreground: oklch(0.85 0 0);
   --sidebar-border: oklch(0.28 0.01 260);
   --sidebar-ring: oklch(0.72 0.19 155);
+  --ui-brand: #3ecf6e;
+  --ui-surface-canvas: #020202;
+  --ui-surface-modal: #0d0d0d;
+  --ui-surface-panel: #0d0d10;
+  --ui-warning-bg: rgba(69, 26, 3, 0.8);
+  --ui-warning-border: rgba(146, 64, 14, 0.6);
+  --ui-warning-text: #fde68a;
+  --ui-warning-button-bg: rgba(180, 83, 9, 0.6);
+  --ui-warning-button-hover: rgba(217, 119, 6, 0.7);
+  --ui-warning-button-text: #fef3c7;
+  --ui-warning-button-border: rgba(217, 119, 6, 0.5);
+  --ui-danger-bg: rgba(239, 68, 68, 0.1);
+  --ui-danger-border: rgba(239, 68, 68, 0.2);
+  --ui-danger-text: rgba(248, 113, 113, 0.8);
+  --ui-danger-strong: #fca5a5;
+  --ui-danger-icon: #f87171;
+  --ui-danger-hover-bg: rgba(239, 68, 68, 0.2);
+  --ui-icon-task: #818cf8;
+  --ui-icon-thesis: #facc15;
+  --ui-icon-question: #60a5fa;
+  --ui-og-bg: #0a0a0a;
+  --ui-og-text: #f0f0f0;
+  --ui-og-muted: #666666;
 }
 
 @theme inline {
@@ -102,6 +148,27 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-ui-surface-canvas: var(--ui-surface-canvas);
+  --color-ui-surface-modal: var(--ui-surface-modal);
+  --color-ui-surface-panel: var(--ui-surface-panel);
+  --color-ui-brand: var(--ui-brand);
+  --color-ui-warning-bg: var(--ui-warning-bg);
+  --color-ui-warning-border: var(--ui-warning-border);
+  --color-ui-warning-text: var(--ui-warning-text);
+  --color-ui-warning-button-bg: var(--ui-warning-button-bg);
+  --color-ui-warning-button-hover: var(--ui-warning-button-hover);
+  --color-ui-warning-button-text: var(--ui-warning-button-text);
+  --color-ui-warning-button-border: var(--ui-warning-button-border);
+  --color-ui-danger-bg: var(--ui-danger-bg);
+  --color-ui-danger-border: var(--ui-danger-border);
+  --color-ui-danger-text: var(--ui-danger-text);
+  --color-ui-danger-strong: var(--ui-danger-strong);
+  --color-ui-danger-icon: var(--ui-danger-icon);
+  --color-ui-danger-hover-bg: var(--ui-danger-hover-bg);
+  --color-ui-icon-task: var(--ui-icon-task);
+  --color-ui-icon-thesis: var(--ui-icon-thesis);
+  --color-ui-icon-question: var(--ui-icon-question);
+  --color-sidebar: var(--sidebar);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);

@@ -67,6 +67,9 @@ export function ProjectSidebar({
   openToSettings,
   onSettingsOpened,
 }: ProjectSidebarProps) {
+  const SIDEBAR_MIN_WIDTH = 200
+  const SIDEBAR_MAX_WIDTH = 420
+  const SIDEBAR_WIDTH_STORAGE_KEY = "nodepad.sidebar.width"
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -74,6 +77,10 @@ export function ProjectSidebar({
   const [showKey, setShowKey] = useState(false)
   const [modelOpen, setModelOpen] = useState(false)
   const [providerOpen, setProviderOpen] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(240)
+  const [isResizing, setIsResizing] = useState(false)
+  const resizeStartXRef = useRef(0)
+  const resizeStartWidthRef = useRef(240)
   // local draft for settings (only save on "Save")
   const [draft, setDraft] = useState<AISettings>(aiSettings)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -89,6 +96,52 @@ export function ProjectSidebar({
   useEffect(() => {
     if (showSettings) setDraft(aiSettings)
   }, [showSettings])
+
+  // Load saved width (client only)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY)
+    if (!stored) return
+    const parsed = Number(stored)
+    if (Number.isFinite(parsed)) {
+      const next = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, parsed))
+      setSidebarWidth(next)
+    }
+  }, [])
+
+  // Persist width
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth))
+  }, [sidebarWidth])
+
+  useEffect(() => {
+    if (!isResizing) return
+    const body = document.body
+    const previousUserSelect = body.style.userSelect
+    const previousCursor = body.style.cursor
+    body.style.userSelect = "none"
+    body.style.cursor = "col-resize"
+    const handleMove = (event: MouseEvent) => {
+      const delta = event.clientX - resizeStartXRef.current
+      const nextWidth = Math.min(
+        SIDEBAR_MAX_WIDTH,
+        Math.max(SIDEBAR_MIN_WIDTH, resizeStartWidthRef.current + delta)
+      )
+      setSidebarWidth(nextWidth)
+    }
+    const handleUp = () => {
+      setIsResizing(false)
+    }
+    window.addEventListener("mousemove", handleMove)
+    window.addEventListener("mouseup", handleUp)
+    return () => {
+      body.style.userSelect = previousUserSelect
+      body.style.cursor = previousCursor
+      window.removeEventListener("mousemove", handleMove)
+      window.removeEventListener("mouseup", handleUp)
+    }
+  }, [isResizing])
 
   // Jump straight to settings when requested externally
   useEffect(() => {
@@ -145,13 +198,13 @@ export function ProjectSidebar({
   return (
     <div
       style={{
-        width: isOpen ? 240 : 0,
+        width: isOpen ? sidebarWidth : 0,
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden"
       }}
       className="relative z-50 transition-all duration-200 ease-in-out overflow-hidden border-r border-border bg-black/20 backdrop-blur-3xl flex flex-col h-full"
     >
-      <div className="w-[240px] flex flex-col h-full">
+      <div className="flex flex-col h-full" style={{ width: sidebarWidth }}>
         {/* Header */}
         <div className="flex h-10 items-center justify-between border-b border-border bg-card/5 backdrop-blur-md px-3 py-1.5 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -309,7 +362,7 @@ export function ProjectSidebar({
                   <div className="relative">
                     <button
                       onClick={() => setProviderOpen(v => !v)}
-                      className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
+                      className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/4 px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
                     >
                       <span className="font-mono text-[11px] font-bold text-foreground">{currentPreset.label}</span>
                       <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${providerOpen ? "rotate-180" : ""}`} />
@@ -321,7 +374,7 @@ export function ProjectSidebar({
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -4 }}
                           transition={{ duration: 0.1 }}
-                          className="absolute top-full left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-white/10 bg-[#0d0d10] shadow-xl"
+                          className="absolute top-full left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-white/10 bg-ui-surface-panel shadow-xl"
                         >
                           {AI_PROVIDER_PRESETS.map(preset => (
                             <button
@@ -360,7 +413,7 @@ export function ProjectSidebar({
                   <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                     API Key
                   </label>
-                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                     <Key className="h-3 w-3 shrink-0 text-muted-foreground" />
                     <input
                       type="text"
@@ -392,7 +445,7 @@ export function ProjectSidebar({
                   <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                     Custom Base URL
                   </label>
-                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                  <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                     <input
                       type="text"
                       value={draft.customBaseUrl ?? ""}
@@ -414,7 +467,7 @@ export function ProjectSidebar({
                     Model
                   </label>
                   {models.length === 0 ? (
-                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                       <input
                         type="text"
                         value={draft.modelId}
@@ -429,7 +482,7 @@ export function ProjectSidebar({
                     <div className="relative">
                       <button
                         onClick={() => setModelOpen(v => !v)}
-                        className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
+                        className="flex w-full items-center justify-between rounded-md border border-white/10 bg-white/4 px-2.5 py-2 text-left hover:bg-white/[0.07] focus:outline-none transition-colors"
                       >
                         <div>
                           <div className="font-mono text-[11px] font-bold text-foreground">
@@ -450,7 +503,7 @@ export function ProjectSidebar({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
                             transition={{ duration: 0.1 }}
-                            className="absolute top-full left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-white/10 bg-[#0d0d10] shadow-xl"
+                            className="absolute top-full left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-white/10 bg-ui-surface-panel shadow-xl"
                           >
                             {models.map(model => (
                               <button
@@ -506,7 +559,7 @@ export function ProjectSidebar({
                     <label className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                       Custom OpenRouter model ID
                     </label>
-                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-2 focus-within:border-primary/50 transition-colors">
+                    <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/4 px-2.5 py-2 focus-within:border-primary/50 transition-colors">
                       <input
                         type="text"
                         value={draft.openrouterCustomModelId ?? ""}
@@ -525,7 +578,7 @@ export function ProjectSidebar({
 
                 {/* Web Grounding (OpenRouter + OpenAI) */}
                 {(draft.provider === "openrouter" || draft.provider === "openai") && (selectedModel || isCustomOpenRouter) && (
-                  <div className="flex items-start justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-2.5 py-2.5">
+                  <div className="flex items-start justify-between gap-3 rounded-md border border-white/5 bg-white/2 px-2.5 py-2.5">
                     <div className="flex items-start gap-2">
                       <Globe className="h-3.5 w-3.5 mt-0.5 text-primary/60 shrink-0" />
                       <div>
@@ -572,14 +625,14 @@ export function ProjectSidebar({
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={handleSaveSettings}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] shadow-sm"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] shadow-sm"
               >
                 <span>Save Settings</span>
                 <Save className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => setShowSettings(false)}
-                className="flex items-center justify-center w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] border border-white/5"
+                className="flex items-center justify-center w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] border border-white/5"
               >
                 Cancel
               </button>
@@ -588,14 +641,14 @@ export function ProjectSidebar({
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={onCreateProject}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] shadow-sm"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] shadow-sm"
               >
                 <span>New Space</span>
                 <Plus className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={onImportProject}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] border border-white/5"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] border border-white/5"
                 title="Import a .nodepad file"
               >
                 <span>Import .nodepad</span>
@@ -603,7 +656,7 @@ export function ProjectSidebar({
               </button>
               <button
                 onClick={() => setShowSettings(true)}
-                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-[0.1em] transition-all active:scale-[0.98] border border-white/5"
+                className="flex items-center justify-between w-full h-8 px-2.5 rounded-sm bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground font-mono text-[9px] font-bold uppercase tracking-widest transition-all active:scale-[0.98] border border-white/5"
               >
                 <span>Settings</span>
                 <Settings className="h-3.5 w-3.5" />
@@ -611,6 +664,20 @@ export function ProjectSidebar({
             </div>
           )}
         </div>
+
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          onMouseDown={(event) => {
+            if (!isOpen) return
+            event.preventDefault()
+            setIsResizing(true)
+            resizeStartXRef.current = event.clientX
+            resizeStartWidthRef.current = sidebarWidth
+          }}
+          className={`absolute right-0 top-0 h-full w-1 cursor-col-resize transition-colors ${isResizing ? "bg-primary/30" : "bg-transparent hover:bg-white/10"}`}
+        />
       </div>
     </div>
   )

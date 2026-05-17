@@ -235,7 +235,7 @@ export function StatusBar({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.96 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute right-0 top-full mt-2.5 z-[300] w-48 rounded-sm bg-primary text-primary-foreground shadow-lg pointer-events-none select-none"
+                  className="absolute right-0 top-full mt-2.5 z-300 w-48 rounded-sm bg-primary text-primary-foreground shadow-lg pointer-events-none select-none"
                 >
                   {/* Arrow pointing up toward the ? button */}
                   <div className="absolute -top-1.5 right-2.5 w-3 h-3 rotate-45 bg-primary rounded-[2px]" />

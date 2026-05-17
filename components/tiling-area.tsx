@@ -242,7 +242,7 @@ export function TilingArea({
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#020202]">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-(--ui-surface-canvas)">
       {/* Task Header stays sticky at top */}
       {taskBlock && (
         <div className={`w-full shrink-0 p-1 z-10 transition-[opacity,filter] duration-300 ${activeConnectionId && !relatedIds.has(taskBlock.id) ? 'opacity-15 saturate-0' : 'opacity-100'}`}>
@@ -305,7 +305,7 @@ export function TilingArea({
       {/* Empty state — absolutely positioned so it centers identically across all views */}
       {pageTrees.length === 0 && !taskBlock && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-8 w-[420px]">
+          <div className="flex flex-col items-center gap-8 w-105">
             <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-foreground/35">spatial research workspace</p>
 
             <div className="flex flex-col gap-5 w-full">
