@@ -41,6 +41,7 @@ interface BSPNode {
 interface TilingAreaProps {
   blocks: TextBlock[]
   collapsedIds: Set<string>
+  aiEnabled: boolean
   onDelete: (id: string) => void
   onEdit: (id: string, newText: string) => void
   onEditAnnotation: (id: string, newAnnotation: string) => void
@@ -61,6 +62,7 @@ interface TilingAreaProps {
 export function TilingArea({
   blocks,
   collapsedIds,
+  aiEnabled,
   onDelete,
   onEdit,
   onEditAnnotation,
@@ -194,30 +196,35 @@ export function TilingArea({
           className="flex flex-1 p-0.5 overflow-hidden"
         >
           <div className={`flex flex-1 min-w-0 transition-[opacity,filter] duration-300 ${isDimmed ? 'opacity-15 saturate-0' : 'opacity-100'}`}>
-            <TileCard
-              block={block}
-              isCollapsed={false}
-              hideCollapse={true}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              onEditAnnotation={onEditAnnotation}
-              onReEnrich={onReEnrich}
-              onChangeType={onChangeType}
-              onToggleCollapse={onToggleCollapse}
-              onTogglePin={onTogglePin}
-              onToggleSubTask={onToggleSubTask}
-              onDeleteSubTask={onDeleteSubTask}
-              isHighlighted={highlightedBlockId === block.id}
-              onHighlight={onHighlight}
-              onConnectionHover={handleConnectionHover}
-              onConnectionLock={handleConnectionLock}
-              isConnectionLocked={lockedConnectionId === block.id}
-              allBlocks={blocks}
-              workspaces={workspaces}
-              activeWorkspaceId={activeWorkspaceId}
-              onMoveToWorkspace={onMoveToWorkspace}
-              onCopyToWorkspace={onCopyToWorkspace}
-            />
+          <TileCard
+  block={block}
+  isCollapsed={false}
+  hideCollapse={true}
+  onDelete={onDelete}
+  onEdit={onEdit}
+  onEditAnnotation={onEditAnnotation}
+  onReEnrich={onReEnrich}
+  onChangeType={onChangeType}
+  onToggleCollapse={onToggleCollapse}
+  onTogglePin={onTogglePin}
+  onToggleSubTask={onToggleSubTask}
+  onDeleteSubTask={onDeleteSubTask}
+  isHighlighted={highlightedBlockId === block.id}
+  onHighlight={onHighlight}
+  onConnectionHover={handleConnectionHover}
+  onConnectionLock={handleConnectionLock}
+  isConnectionLocked={lockedConnectionId === block.id}
+  allBlocks={blocks}
+
+  // feat/llm_toggle
+  aiEnabled={aiEnabled}
+
+  // main
+  workspaces={workspaces}
+  activeWorkspaceId={activeWorkspaceId}
+  onMoveToWorkspace={onMoveToWorkspace}
+  onCopyToWorkspace={onCopyToWorkspace}
+/>
           </div>
         </div>
       )
@@ -246,29 +253,35 @@ export function TilingArea({
       {/* Task Header stays sticky at top */}
       {taskBlock && (
         <div className={`w-full shrink-0 p-1 z-10 transition-[opacity,filter] duration-300 ${activeConnectionId && !relatedIds.has(taskBlock.id) ? 'opacity-15 saturate-0' : 'opacity-100'}`}>
-            <TileCard
-              block={taskBlock}
-              isCollapsed={collapsedIds.has(taskBlock.id)}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              onEditAnnotation={onEditAnnotation}
-              onReEnrich={onReEnrich}
-              onChangeType={onChangeType}
-              onToggleCollapse={onToggleCollapse}
-              onTogglePin={onTogglePin}
-              onToggleSubTask={onToggleSubTask}
-              onDeleteSubTask={onDeleteSubTask}
-              isHighlighted={highlightedBlockId === taskBlock.id}
-              onHighlight={onHighlight}
-              onConnectionHover={handleConnectionHover}
-              onConnectionLock={handleConnectionLock}
-              isConnectionLocked={lockedConnectionId === taskBlock.id}
-              allBlocks={blocks}
-              workspaces={workspaces}
-              activeWorkspaceId={activeWorkspaceId}
-              onMoveToWorkspace={onMoveToWorkspace}
-              onCopyToWorkspace={onCopyToWorkspace}
-            />
+         <TileCard
+  block={block}
+  isCollapsed={false}
+  hideCollapse={true}
+  onDelete={onDelete}
+  onEdit={onEdit}
+  onEditAnnotation={onEditAnnotation}
+  onReEnrich={onReEnrich}
+  onChangeType={onChangeType}
+  onToggleCollapse={onToggleCollapse}
+  onTogglePin={onTogglePin}
+  onToggleSubTask={onToggleSubTask}
+  onDeleteSubTask={onDeleteSubTask}
+  isHighlighted={highlightedBlockId === block.id}
+  onHighlight={onHighlight}
+  onConnectionHover={handleConnectionHover}
+  onConnectionLock={handleConnectionLock}
+  isConnectionLocked={lockedConnectionId === block.id}
+  allBlocks={blocks}
+
+  // feat/llm_toggle
+  aiEnabled={aiEnabled}
+
+  // main
+  workspaces={workspaces}
+  activeWorkspaceId={activeWorkspaceId}
+  onMoveToWorkspace={onMoveToWorkspace}
+  onCopyToWorkspace={onCopyToWorkspace}
+/>
         </div>
       )}
 

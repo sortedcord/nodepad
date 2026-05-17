@@ -29,7 +29,7 @@ export interface TextBlock {
 interface TileCardProps {
   block: TextBlock
   isCollapsed: boolean
-  hideCollapse?: boolean       // tiling view — collapse doesn't work in BSP layout, so hide the button
+  hideCollapse?: boolean
   onDelete: (id: string) => void
   onEdit: (id: string, newText: string) => void
   onEditAnnotation: (id: string, newAnnotation: string) => void
@@ -45,6 +45,11 @@ interface TileCardProps {
   isConnectionLocked?: boolean
   allBlocks?: TextBlock[]
   onChangeType?: (id: string, newType: ContentType) => void
+
+  // feat/llm_toggle
+  aiEnabled?: boolean
+
+  // main
   workspaces?: { id: string; name: string }[]
   activeWorkspaceId?: string
   onMoveToWorkspace?: (blockId: string, targetWorkspaceId: string) => void
@@ -86,13 +91,13 @@ function isRTL(text: string): boolean {
   return rtlChars.test(text)
 }
 
-export const TileCard = memo(function TileCard({ 
-  block, 
-  isCollapsed, 
-  onDelete, 
-  onEdit, 
-  onEditAnnotation, 
-  onReEnrich, 
+export const TileCard = memo(function TileCard({
+  block,
+  isCollapsed,
+  onDelete,
+  onEdit,
+  onEditAnnotation,
+  onReEnrich,
   onToggleCollapse,
   onTogglePin,
   onToggleSubTask,
@@ -105,6 +110,11 @@ export const TileCard = memo(function TileCard({
   allBlocks,
   hideCollapse = false,
   onChangeType,
+
+  // feat/llm_toggle
+  aiEnabled = true,
+
+  // main
   workspaces,
   activeWorkspaceId,
   onMoveToWorkspace,
@@ -637,7 +647,7 @@ export const TileCard = memo(function TileCard({
                   </div>
                 ) : (
                   <div className="w-full">
-                    {block.isError && (
+                    {block.isError && aiEnabled && (
                       <div className="mb-3 flex items-start gap-2 rounded-sm border border-red-500/20 bg-red-500/10 px-2.5 py-2">
                         <span className="mt-px font-mono text-[9px] text-red-400/80 uppercase tracking-wider leading-relaxed">
                           {block.statusText === "no-api-key"
