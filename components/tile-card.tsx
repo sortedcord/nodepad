@@ -639,13 +639,20 @@ export const TileCard = memo(function TileCard({
                   <div className="w-full">
                     {block.isError && (
                       <div className="mb-3 flex items-start gap-2 rounded-sm border border-(--ui-danger-border) bg-(--ui-danger-bg) px-2.5 py-2">
-                        <span className="mt-px font-mono text-[9px] text-(--ui-danger-text) uppercase tracking-wider leading-relaxed">
+                        <span className="mt-px flex-1 font-mono text-[9px] text-(--ui-danger-text) uppercase tracking-wider leading-relaxed">
                           {block.statusText === "no-api-key"
                             ? <>AI enrichment failed — no API key. Open the <strong className="text-(--ui-danger-strong)">☰ sidebar → Settings</strong> to add your API key.</>
                             : block.statusText
-                              ? <>{block.statusText}{" "}<span className="opacity-60">Double-click to retry.</span></>
-                              : "Enrichment failed. Double-click to retry."}
+                              ? <>{block.statusText}</>
+                              : "Enrichment failed."}
                         </span>
+                        <button
+                          onClick={() => onReEnrich(block.id)}
+                          className="flex items-center justify-center p-1 rounded-sm opacity-60 hover:opacity-100 hover:bg-black/10 transition-all text-(--ui-danger-text)"
+                          title="Retry"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </button>
                       </div>
                     )}
                     <div className={block.isEnriching ? "shimmer-body" : ""}>
